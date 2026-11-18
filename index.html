@@ -1,0 +1,3919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Isla Michi - Cafetería & Bosque Extendido</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #140f1d;
+      color: #fdf6f9;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ================= AVISO MODO HORIZONTAL EN CELULAR ================= */
+    #portraitWarning {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #1a0f24;
+      z-index: 9999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      color: #ffb7d5;
+    }
+
+    @media screen and (orientation: portrait) and (max-width: 900px) {
+      #portraitWarning {
+        display: flex;
+      }
+    }
+
+    .rotate-icon {
+      font-size: 3.5rem;
+      margin-bottom: 14px;
+      animation: rotatePhone 1.8s infinite ease-in-out;
+    }
+
+    @keyframes rotatePhone {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-90deg); }
+    }
+
+    /* ================= PANTALLAS DE APERTURA Y MENÚS CUTE ================= */
+    .overlay-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, #3b2242 0%, #1d1326 60%, #100a17 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 14px;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .cute-card {
+      background: rgba(45, 29, 54, 0.96);
+      border: 3.5px solid #ff9ebb;
+      border-radius: 26px;
+      padding: 22px 28px;
+      max-width: 860px;
+      width: 100%;
+      max-height: 95vh;
+      overflow-y: auto;
+      box-shadow: 0 14px 40px rgba(255, 117, 160, 0.3), 0 0 0 6px rgba(255, 183, 213, 0.12);
+      animation: popIn 0.35s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.93); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .game-logo {
+      font-size: 2.8rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      animation: titleFloat 2.4s ease-in-out infinite;
+    }
+
+    .game-logo-text {
+      display: inline-flex;
+      gap: 2px;
+      text-shadow: none !important;
+      filter: none !important;
+    }
+
+    .game-logo-text span {
+      display: inline-block;
+      background: linear-gradient(
+        110deg,
+        #ff2a7a 0%,
+        #ff1744 22%,
+        #b5179e 45%,
+        #7209b7 68%,
+        #3a86ff 86%,
+        #ff2a7a 100%
+      );
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: letterPop 1.8s ease-in-out infinite, rainbowWave 3.2s linear infinite;
+    }
+
+    .game-logo-emoji {
+      -webkit-text-fill-color: initial;
+      text-shadow: none !important;
+      filter: none !important;
+    }
+
+    @keyframes rainbowWave {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes letterPop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes titleFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-4px) scale(1.03); }
+    }
+
+    #titleBgCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      cursor: pointer;
+    }
+
+    #screenTitle .cute-card {
+      position: relative;
+      z-index: 2;
+      background: rgba(255, 183, 213, 0.16);
+      backdrop-filter: blur(2px);
+      max-width: 560px;
+      border: 2px solid rgba(255, 194, 226, 0.35);
+      box-shadow: 0 10px 30px rgba(255, 143, 171, 0.15);
+    }
+
+    #screenTitle .cute-card p,
+    #screenTitle .cute-card .game-subtitle,
+    #screenTitle .cute-card div {
+      text-shadow: 0 2px 6px rgba(35, 17, 28, 0.75);
+    }
+
+    .game-subtitle {
+      font-size: 1rem;
+      color: #ffd166;
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    .floating-cats {
+      font-size: 2.4rem;
+      margin: 8px 0 16px;
+      animation: bounceCats 1.8s infinite ease-in-out;
+    }
+
+    @keyframes bounceCats {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    .btn-cute {
+      background: linear-gradient(135deg, #ff75a0, #ff9ebb);
+      color: #23111c;
+      border: 2.5px solid #fff0f5;
+      border-radius: 999px;
+      padding: 11px 28px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #b83b66, 0 6px 16px rgba(255, 117, 160, 0.45);
+      transition: transform 0.12s, box-shadow 0.12s;
+      margin: 4px;
+    }
+
+    .btn-cute:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #b83b66;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #ffd166, #ffe29a);
+      box-shadow: 0 4px 0 #b5831b;
+    }
+
+    .btn-ghost {
+      background: #3d284a;
+      color: #ffd6e7;
+      border: 2px solid #f7a8c4;
+      box-shadow: none;
+      font-size: 0.88rem;
+      padding: 8px 18px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .mode-option {
+      background: #3b2647;
+      border: 2.5px solid #f7a8c4;
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: center;
+    }
+
+    .mode-option.selected {
+      background: #523263;
+      border-color: #ffd166;
+      box-shadow: 0 4px 14px rgba(255, 209, 102, 0.3);
+    }
+
+    .mode-option h3 {
+      color: #ffb7d5;
+      margin-bottom: 4px;
+      font-size: 0.98rem;
+    }
+
+    .mode-option p {
+      font-size: 0.78rem;
+      color: #e8d8ee;
+      line-height: 1.3;
+    }
+
+    .cat-models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+      gap: 10px;
+      margin: 8px 0 14px;
+    }
+
+    .cat-model-card {
+      background: #352140;
+      border: 2.5px solid #9d75cb;
+      border-radius: 16px;
+      padding: 8px 6px;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cat-model-card.selected {
+      border-color: #ffd166;
+      background: #4e315e;
+      box-shadow: 0 0 14px rgba(255, 209, 102, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .cat-preview-canvas {
+      width: 78px;
+      height: 82px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .invite-box {
+      background: #24162e;
+      border: 2px dashed #ffd166;
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .code-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .code-display {
+      background: #140c1a;
+      color: #52b788;
+      font-family: monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1.5px solid #52b788;
+      letter-spacing: 2px;
+    }
+
+    .code-input {
+      background: #140c1a;
+      color: #fff;
+      border: 2px solid #ff9ebb;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      width: 155px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* ================= HUD SUPERIOR E INFERIOR ================= */
+    header {
+      background: linear-gradient(90deg, #23192d 0%, #31223f 100%);
+      padding: 4px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2.5px solid #f7a8c4;
+      z-index: 10;
+      min-height: 54px;
+      gap: 8px;
+    }
+
+    .title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #ffb7d5;
+      display: flex;
+      flex-direction: column;
+      white-space: nowrap;
+    }
+
+    .title small {
+      font-size: 0.66rem;
+      color: #d8c3e0;
+      font-weight: normal;
+    }
+
+    .orders-bar {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .order-card {
+      background: #38294c;
+      border: 1.5px solid #ffd166;
+      border-radius: 8px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      min-width: 170px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+
+    .order-card .order-head {
+      display: flex;
+      justify-content: space-between;
+      color: #ffd166;
+      font-weight: bold;
+    }
+
+    .order-card .order-steps {
+      color: #f8edeb;
+      font-size: 0.66rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .score-box {
+      background: linear-gradient(135deg, #ff75a0, #ff9ebb);
+      color: #1e1828;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.84rem;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(255, 117, 160, 0.4);
+    }
+
+    /* ================= CONTENEDORES DE JUEGO ================= */
+    .game-viewports-container {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      display: flex;
+      background: #1b1322;
+      overflow: hidden;
+    }
+
+    .viewport-pane {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      border-right: 2px solid #f7a8c4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .viewport-pane:last-child {
+      border-right: none;
+    }
+
+    canvas.gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .viewport-label {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      background: rgba(31, 20, 40, 0.88);
+      border: 1.5px solid #ff9ebb;
+      color: #ffd166;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.76rem;
+      font-weight: bold;
+      z-index: 25;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    }
+
+    .chef-alert-banner {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(58, 22, 46, 0.95);
+      border: 2px solid #ff75a0;
+      color: #ffe5ec;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: bold;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .chat-widget {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 265px;
+      background: rgba(31, 20, 40, 0.93);
+      border: 2px solid #ff9ebb;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      z-index: 40;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: #3d244d;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      color: #ffd166;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .chat-messages {
+      height: 110px;
+      overflow-y: auto;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.75rem;
+    }
+
+    .chat-msg {
+      background: #2f1d3d;
+      padding: 4px 8px;
+      border-radius: 10px;
+      color: #fdf6f9;
+      word-break: break-word;
+    }
+
+    .chat-msg strong {
+      color: #ff9ebb;
+    }
+
+    .chat-input-row {
+      display: flex;
+      border-top: 1px solid #59366e;
+    }
+
+    .chat-input-row input {
+      flex: 1;
+      background: #180f21;
+      border: none;
+      color: #fff;
+      padding: 6px 8px;
+      font-size: 0.76rem;
+      outline: none;
+    }
+
+    .chat-input-row button {
+      background: #ff75a0;
+      color: #23111c;
+      border: none;
+      padding: 0 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.76rem;
+    }
+
+    .mobile-controls {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 35;
+    }
+
+    .dpad-box, .action-pads {
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 42px);
+      grid-template-rows: repeat(2, 42px);
+      gap: 4px;
+    }
+
+    .touch-btn {
+      background: rgba(59, 38, 71, 0.85);
+      border: 2px solid #ff9ebb;
+      color: #fff;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 6px 10px;
+      min-width: 42px;
+      min-height: 42px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.45);
+    }
+
+    .touch-btn:active {
+      background: #ff75a0;
+      color: #1e1828;
+    }
+
+    .hud-bottom {
+      background: #23192d;
+      color: #fdf6f9;
+      border-top: 2px solid #f7a8c4;
+      padding: 4px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .inventory-list {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 0.7rem;
+      background: #38294c;
+      color: #ffd166;
+      border: 1.5px solid #f7a8c4;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 15, 29, 0.96);
+      color: #ffd166;
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #ffd166;
+      font-size: 0.82rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s;
+      z-index: 300;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    @media (max-height: 500px) {
+      header { min-height: 42px; padding: 2px 10px; }
+      .hud-bottom { padding: 2px 10px; font-size: 0.68rem; }
+      .chat-widget { width: 220px; bottom: 56px; }
+      .chat-messages { height: 70px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AVISO MODO VERTICAL -->
+  <div id="portraitWarning">
+    <div class="rotate-icon">📱🔄</div>
+    <h2 style="margin-bottom:8px;">¡Gira tu celular en horizontal!</h2>
+    <p style="color:#f3dce6; font-size:0.95rem; max-width:300px;">
+      Isla Michi está diseñado para jugarse en pantalla completa horizontal.
+    </p>
+  </div>
+
+  <!-- PANTALLA 1: TÍTULO -->
+  <div class="overlay-screen" id="screenTitle">
+    <canvas id="titleBgCanvas"></canvas>
+    <div class="cute-card">
+      <div class="game-logo">
+        <span class="game-logo-emoji">🐾</span>
+        <span class="game-logo-text">
+          <span style="animation-delay:0.0s, 0.0s;">I</span><span style="animation-delay:0.1s, -0.25s;">s</span><span style="animation-delay:0.2s, -0.5s;">l</span><span style="animation-delay:0.3s, -0.75s;">a</span><span style="width:10px; background:none;"></span><span style="animation-delay:0.4s, -1.0s;">M</span><span style="animation-delay:0.5s, -1.25s;">i</span><span style="animation-delay:0.6s, -1.5s;">c</span><span style="animation-delay:0.7s, -1.75s;">h</span><span style="animation-delay:0.8s, -2.0s;">i</span>
+        </span>
+        <span class="game-logo-emoji">🍰</span>
+      </div>
+      <div class="game-subtitle">Cafetería Gourmet 2.5D & Bosque Místico</div>
+      <div class="floating-cats">🐱👩‍🍳 ✨ 🧁🍓🍯 ✨ 🦇🧹</div>
+      <p style="color:#f3dce6; font-size:0.92rem; max-width:520px; margin:0 auto 14px; line-height:1.45;">
+        Hornea postres, atiende mesas con [R], recolecta pelos de gato y explora el bosque junto a tus gatitos favoritos.
+      </p>
+      <button class="btn-cute" id="btnStart">✨ Start ✨</button>
+      <div style="margin-top:8px; font-size:0.75rem; color:#ffd166;">💡 ¡Haz clic o toca los gatitos del fondo para ver sus poses tiernas!</div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 2: MODO DE JUEGO -->
+  <div class="overlay-screen hidden" id="screenMode">
+    <div class="cute-card">
+      <h2 style="color:#ffb7d5; font-size:1.35rem; margin-bottom:4px;">🎀 ¿Cuántos gatitos jugarán hoy?</h2>
+      <p style="color:#d8c3e0; font-size:0.82rem;">Elige el modo de juego o invita a un amigo online con un código</p>
+
+      <div class="mode-grid">
+        <div class="mode-option selected" data-mode="solo_hybrid">
+          <h3>🐱 1 Jugador (Rol Doble Dinámico)</h3>
+          <p>Cocina con total libertad y sal al bosque donde está la cafetería y el murciélago.</p>
+        </div>
+        <div class="mode-option" data-mode="solo_ai">
+          <h3>🐱🤖 1 Jugador + Compañero IA</h3>
+          <p>Tú eliges tu rol y el otro gatito hará sus labores automáticamente.</p>
+        </div>
+        <div class="mode-option" data-mode="duo_local">
+          <h3>🐱🐱 2 Jugadores (Pantalla Dividida / Online)</h3>
+          <p>Jueguen juntos en dos pantallas simultáneas o por código online.</p>
+        </div>
+      </div>
+
+      <div class="invite-box">
+        <div style="font-size:0.82rem; color:#ffd166; font-weight:bold;">
+          🌐 Invitar a un amigo Online (Otros dispositivos + Chat en vivo)
+        </div>
+        <div class="code-row">
+          <button class="btn-cute btn-ghost" id="btnGenCode">🎲 Crear Sala Online</button>
+          <span class="code-display" id="roomCodeDisplay" title="Haz clic para copiar">MICHIS-26</span>
+          <button class="btn-cute btn-ghost" style="padding:6px 12px; font-size:0.78rem;" id="btnCopyCode">📋 Copiar</button>
+          <input type="text" class="code-input" id="joinCodeInput" placeholder="PEGAR CÓDIGO" maxlength="14" />
+          <button class="btn-cute btn-secondary" style="padding:6px 14px; font-size:0.82rem;" id="btnJoinCode">🔗 Unirse Online</button>
+        </div>
+        <small id="inviteStatus" style="color:#b7e4c7; font-size:0.74rem;">
+          Crea una sala online y comparte el código para jugar juntos.
+        </small>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button class="btn-cute btn-ghost" id="btnBackToTitle">⬅ Volver</button>
+        <button class="btn-cute" id="btnContinueMode">Continuar ➡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 3: SELECCIÓN DE PERSONAJES -->
+  <div class="overlay-screen hidden" id="screenCharSelect">
+    <div class="cute-card">
+      <h2 style="color:#ffb7d5; font-size:1.35rem; margin-bottom:2px;">🐾 Elige tu Modelo de Gatito</h2>
+      <p style="color:#d8c3e0; font-size:0.8rem; margin-bottom:10px;">
+        Selecciona el personaje que más te guste
+      </p>
+
+      <div id="soloAiRoleBox" class="hidden" style="margin-bottom:10px;">
+        <span style="font-size:0.82rem; color:#ffd166; font-weight:bold; display:block; margin-bottom:5px;">
+          ¿Qué rol quieres controlar tú?
+        </span>
+        <button class="btn-cute btn-secondary" style="padding:6px 14px; font-size:0.82rem;" id="btnRoleChef">👩‍🍳 Yo seré Chef (Recolector IA)</button>
+        <button class="btn-cute btn-ghost" style="padding:6px 14px; font-size:0.82rem;" id="btnRoleGather">🗡️ Yo seré Recolector (Chef IA)</button>
+      </div>
+
+      <div style="text-align:left; font-size:0.82rem; color:#ffb7d5; font-weight:bold;" id="p1PickerLabel">
+        🐱 Modelo para Jugador 1:
+      </div>
+      <div class="cat-models-grid" id="p1ModelGrid"></div>
+
+      <div id="p2PickerSection">
+        <div style="text-align:left; font-size:0.82rem; color:#ffd166; font-weight:bold;" id="p2PickerLabel">
+          🐱 Modelo para Jugador 2:
+        </div>
+        <div class="cat-models-grid" id="p2ModelGrid"></div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button class="btn-cute btn-ghost" id="btnBackToMode">⬅ Atrás</button>
+        <button class="btn-cute" id="btnPlayGame">🎮 ¡Comenzar Aventura!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD PRINCIPAL -->
+  <header>
+    <div class="title">
+      <span>🐾 Isla Michi</span>
+      <small id="modeBadgeText">Cafetería Gourmet & Bosque</small>
+    </div>
+    <div class="orders-bar" id="ordersBar"></div>
+    <div class="header-right">
+      <div class="score-box">✨ Puntos: <span id="scoreVal">0</span></div>
+      <button class="btn-cute btn-ghost" style="padding:4px 10px; font-size:0.74rem;" id="btnToggleTouch">📱 Controles</button>
+      <button class="btn-cute btn-ghost" style="padding:4px 10px; font-size:0.74rem;" id="btnOpenMenu">☰ Menú</button>
+    </div>
+  </header>
+
+  <!-- VISTAS DE JUEGO -->
+  <div class="game-viewports-container" id="viewportsContainer">
+    <div class="chef-alert-banner hidden" id="chefNeedBanner">
+      <span>👩‍🍳💬</span>
+      <span id="chefNeedText">¡Necesito ingredientes!</span>
+    </div>
+
+    <div class="viewport-pane" id="paneP1">
+      <div class="viewport-label" id="labelP1">👩‍🍳 Cafetería Vintage Gatuna</div>
+      <canvas class="gameCanvas" id="canvasP1"></canvas>
+    </div>
+
+    <div class="viewport-pane hidden" id="paneP2">
+      <div class="viewport-label" id="labelP2">🗡️ Bosque Extendido & Cueva Murciélago</div>
+      <canvas class="gameCanvas" id="canvasP2"></canvas>
+    </div>
+
+    <!-- CHAT EN VIVO -->
+    <div class="chat-widget hidden" id="chatWidget">
+      <div class="chat-header" id="chatHeaderToggle">
+        <span>💬 Sala Online: <span id="chatRoomLabel">MICHIS-26</span></span>
+        <span id="chatMinimizeIcon">▼</span>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg"><strong>Sistema:</strong> ¡Sala online lista! Todos los conectados verán tus mensajes.</div>
+      </div>
+      <div class="chat-input-row" id="chatInputRow">
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." maxlength="90" />
+        <button id="btnSendChat">Enviar</button>
+      </div>
+    </div>
+
+    <!-- CONTROLES TÁCTILES -->
+    <div class="mobile-controls hidden" id="mobileControls">
+      <div class="dpad-box">
+        <div class="dpad-grid">
+          <div></div>
+          <button class="touch-btn" data-key="KeyW">▲</button>
+          <div></div>
+          <button class="touch-btn" data-key="KeyA">◀</button>
+          <button class="touch-btn" data-key="KeyS">▼</button>
+          <button class="touch-btn" data-key="KeyD">▶</button>
+        </div>
+      </div>
+      <div class="action-pads">
+        <button class="touch-btn" id="touchBtnR">📋 Atender/Murciélago [R]</button>
+        <button class="touch-btn" id="touchBtnE">🍳 Cocinar [E]</button>
+        <button class="touch-btn" id="touchBtn1">🧺 Recoger [1]</button>
+        <button class="touch-btn" id="touchBtn2">🗡️ Talar [2]</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud-bottom">
+    <div class="inventory-list" id="p1IngredientsHud"></div>
+    <div class="inventory-list" id="bagHud"></div>
+    <div style="color:#ffd166; font-weight:bold;" id="controlsLegend">
+      WASD: Mover | E: Cocinar/Canastas/Frascos | R: Atender Mesas / Dar Pelos al Murciélago | 1: Recoger Frascos/Recursos | 2: Talar Madera
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ================= MODELOS DE GATITOS =================
+    const CAT_MODELS = [
+      { id: 'mochi', name: 'Mochi', fur: '#ffffff', furShade: '#f2dfe8', ear: '#ffb3c6', paw: '#ff8fab', stripes: null, eye: '#141118', outfit: 'dress_pink' },
+      { id: 'thom', name: 'Thom', fur: '#a47148', furShade: '#7f4f24', ear: '#e6ccb2', paw: '#ddb892', stripes: '#582f0e', eye: '#141118', outfit: 'hiphop' },
+      { id: 'canela', name: 'Canela', fur: '#f4a261', furShade: '#e08e4b', ear: '#ffe5d9', paw: '#ff8fab', stripes: '#bc6c25', eye: '#141118', outfit: 'none' },
+      { id: 'sombra', name: 'Sombra', fur: '#36303d', furShade: '#231e29', ear: '#ff8fab', paw: '#ffafcc', stripes: '#1f1b24', eye: '#ffd166', outfit: 'none' },
+      { id: 'lila', name: 'Lulú', fur: '#cdb4db', furShade: '#b392c7', ear: '#ffafcc', paw: '#ff75a0', stripes: '#9d4edd', eye: '#141118', outfit: 'none' },
+      { id: 'crema', name: 'Galleta', fur: '#faedcd', furShade: '#e6d3a7', ear: '#f4a261', paw: '#ffb3c6', stripes: '#d4a373', eye: '#141118', outfit: 'none' },
+      { id: 'celeste', name: 'Nube', fur: '#e0fbfc', furShade: '#bfe3e6', ear: '#ffafcc', paw: '#ff8fab', stripes: '#98c1d9', eye: '#141118', outfit: 'none' }
+    ];
+
+    const gameConfig = {
+      mode: 'solo_hybrid',
+      soloAiPlayerRole: 'chef',
+      p1Model: CAT_MODELS[0],
+      p2Model: CAT_MODELS[1],
+      roomCode: 'MICHIS-' + Math.floor(100 + Math.random() * 899),
+      peer: null,
+      connections: [],
+      isHost: false,
+      isRemoteConnected: false,
+      channel: null,
+      lastNetSync: 0
+    };
+
+    // ================= MUNDO Y LÍMITES (COCINA AMPLIADA 2.5D) =================
+    const WORLD_W = 3950;
+    const WORLD_H = 1040;
+    const KITCHEN_W = 1480;
+    const MAX_BAG_CAPACITY = 12;
+
+    const INGREDIENT_INFO = {
+      fresa: { label: '🍓 Fresa', nameOnly: 'fresas', color: '#ff5c8a', category: 'fruit' },
+      mora: { label: '🫐 Mora', nameOnly: 'moras', color: '#7b61ff', category: 'fruit' },
+      matcha: { label: '🍵 Matcha', nameOnly: 'hojas de matcha', color: '#52b788', category: 'fruit' },
+      miel: { label: '🍯 Miel', nameOnly: 'miel', color: '#ffbe0b', category: 'pantry' },
+      choco: { label: '🍫 Choco', nameOnly: 'chocolate', color: '#9c6644', category: 'pantry' },
+      madera: { label: '🪵 Madera', nameOnly: 'madera para el horno', color: '#a47148', category: 'fuel' },
+      pelos: { label: '🐈 Pelos de Gato', nameOnly: 'pelos de gato', color: '#d8b4fe', category: 'special' },
+      frasco: { label: '🧪 Frasco Vacío', nameOnly: 'frascos', color: '#a2d2ff', category: 'special' }
+    };
+
+    const RECIPES = [
+      { id: 'muffin_fresa', name: 'Muffin de Fresa 🍓', req: { fresa: 2, miel: 1 }, steps: ['chop', 'mix', 'bake'], stepLabels: '1.Picar 🔪 → 2.Batir 🥣 → 3.Horno Leña 🔥', pts: 140 },
+      { id: 'tarta_mora', name: 'Tarta de Mora 🫐', req: { mora: 2, fresa: 1 }, steps: ['chop', 'mix', 'bake'], stepLabels: '1.Picar 🔪 → 2.Batir 🥣 → 3.Horno Leña 🔥', pts: 170 },
+      { id: 'galleta_matcha', name: 'Galleta Matcha 🍵', req: { matcha: 2, miel: 1 }, steps: ['mix', 'bake'], stepLabels: '1.Batir 🥣 → 3.Horno Leña 🔥', pts: 130 },
+      { id: 'pastel_choco', name: 'Pastel Chocobaya 🍫', req: { choco: 2, fresa: 1 }, steps: ['chop', 'mix', 'bake'], stepLabels: '1.Picar 🔪 → 2.Batir 🥣 → 3.Horno Leña 🔥', pts: 190 },
+      { id: 'hotcake_miel', name: 'Hotcakes Miel 🍯', req: { miel: 2, choco: 1 }, steps: ['mix', 'bake'], stepLabels: '1.Batir 🥣 → 3.Horno Leña 🔥', pts: 150 }
+    ];
+
+    const state = {
+      started: false,
+      score: 0,
+      fruitBaskets: { fresa: 2, mora: 1, matcha: 1 },
+      pantryStock: { miel: 2, choco: 1 },
+      ovenWood: 2,
+      emptyJarsStock: 3,
+      p1Stock: { fresa: 0, mora: 0, miel: 0, matcha: 0, choco: 0 },
+      p2Bag: [],
+      orders: [],
+      missingItemsList: []
+    };
+
+    // Partículas ambientales y efectos de interacción
+    let fxParticles = [];
+    function spawnFxParticles(x, y, color, count = 10, emoji = null) {
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+        const speed = 1.5 + Math.random() * 3.2;
+        fxParticles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.2,
+          life: 28 + Math.random() * 18,
+          maxLife: 46,
+          color,
+          emoji: i === 0 ? emoji : null,
+          size: 3 + Math.random() * 3.5
+        });
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.opacity = 1;
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => (t.style.opacity = 0), 2600);
+    }
+
+    function evaluateChefMissingIngredients() {
+      const missingSet = new Map();
+      const bagWoodCount = gameConfig.mode === 'solo_hybrid'
+        ? state.p2Bag.filter(i => i === 'madera').length
+        : 0;
+
+      if (state.ovenWood + bagWoodCount <= 0) {
+        missingSet.set('madera', '1x 🪵 Madera');
+      }
+
+      for (const ord of state.orders) {
+        for (const [ing, reqQty] of Object.entries(ord.recipe.req)) {
+          const inHand = state.p1Stock[ing] || 0;
+          const inStorage = INGREDIENT_INFO[ing].category === 'fruit'
+            ? (state.fruitBaskets[ing] || 0)
+            : (state.pantryStock[ing] || 0);
+          const inHybridBag = gameConfig.mode === 'solo_hybrid'
+            ? state.p2Bag.filter(i => i === ing).length
+            : 0;
+          const totalAvailable = inHand + inStorage + inHybridBag;
+          if (totalAvailable < reqQty) {
+            const faltan = reqQty - totalAvailable;
+            missingSet.set(ing, `${faltan}x ${INGREDIENT_INFO[ing].label}`);
+          }
+        }
+      }
+
+      state.missingItemsList = Array.from(missingSet.keys());
+      const banner = document.getElementById('chefNeedBanner');
+      const textEl = document.getElementById('chefNeedText');
+
+      if (missingSet.size > 0 && state.started) {
+        const itemsText = Array.from(missingSet.values()).join(', ');
+        textEl.textContent = `¡El Chef necesita más ingredientes! Faltan: ${itemsText}`;
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    // ================= JUGADORES Y ENEMIGO MURCIÉLAGO =================
+    const p1 = {
+      x: 960, y: 460, vx: 0, vy: 0, r: 20, speed: 10.6, dir: 1,
+      activeOrder: null, stepIndex: 0, holdingDish: null,
+      actionTimer: 0, actionMax: 22, actionType: '', chopAnim: 0
+    };
+
+    const p2 = {
+      x: 1580, y: 500, vx: 0, vy: 0, r: 20, speed: 7.4, dir: 1,
+      chopAnim: 0, activeOrder: null, stepIndex: 0, holdingDish: null,
+      actionTimer: 0, actionMax: 22, actionType: '', stuckFrames: 0, lastAiX: 1580, lastAiY: 500, dodgeDir: 1
+    };
+
+    function getActorSpeed(actor) {
+      const model = actor === p1 ? gameConfig.p1Model : gameConfig.p2Model;
+      return model && model.id === 'mochi' ? actor.speed * 1.25 : actor.speed;
+    }
+
+    const batEnemy = {
+      x: 2700, y: 500, r: 22, speed: 3.2,
+      state: 'cave', calmTimer: 0, caveX: 3550, caveY: 510
+    };
+
+    // ================= CAFETERÍA AMPLIADA Y GATITOS NPC =================
+    const cafeTables = [
+      { id: 'mesa1', x: 115, y: 170, w: 126, h: 84, label: 'Mesa 1', hairPile: null },
+      { id: 'mesa2', x: 115, y: 440, w: 126, h: 84, label: 'Mesa 2', hairPile: null },
+      { id: 'mesa3', x: 115, y: 710, w: 126, h: 84, label: 'Mesa 3', hairPile: null }
+    ];
+
+    const NPC_STYLES = [
+      { name: 'Pelusa', fur: '#e0fbfc', furShade: '#bde0fe', ear: '#ffafcc', scarf: '#bde0fe', stripes: '#98c1d9', eye: '#141118' },
+      { name: 'Nube', fur: '#fff8f6', furShade: '#f5dcd7', ear: '#ffb5a7', scarf: '#fcd5ce', stripes: '#e8d1c5', eye: '#141118' },
+      { name: 'Michi Negro', fur: '#342e3d', furShade: '#1f1b24', ear: '#ff8fab', scarf: '#ffd166', stripes: '#1f1b24', eye: '#ffb703' },
+      { name: 'Manchitas', fur: '#fff1e6', furShade: '#ebd4c3', ear: '#f4a261', scarf: '#a8dadc', stripes: '#e76f51', eye: '#141118' },
+      { name: 'Lulú', fur: '#cdb4db', furShade: '#b392c7', ear: '#ffafcc', scarf: '#ffc8dd', stripes: '#9d4edd', eye: '#141118' }
+    ];
+
+    let npcCats = [];
+    let npcSpawnTimer = 50;
+
+    function spawnNpcCustomer() {
+      if (npcCats.length >= 3) return;
+      const freeTable = cafeTables.find(t => !npcCats.some(c => c.tableId === t.id));
+      if (!freeTable) return;
+      const style = NPC_STYLES[Math.floor(Math.random() * NPC_STYLES.length)];
+      const recipe = RECIPES[Math.floor(Math.random() * RECIPES.length)];
+      npcCats.push({
+        uid: Date.now() + Math.random(),
+        tableId: freeTable.id,
+        x: 75, y: 970, vx: 0, vy: 0,
+        targetX: freeTable.x + 63, targetY: freeTable.y - 32,
+        state: 'entering', eatTimer: 0, style, recipe
+      });
+    }
+
+    const kitchenStations = [
+      { id: 'chopBoard', label: '🔪 Mesa de Picar', x: 580, y: 120, w: 220, h: 108, color: '#cdb4db', accent: '#9d4edd' },
+      { id: 'mixer', label: '🥣 Mesa Batidora', x: 890, y: 120, w: 220, h: 108, color: '#f8ad9d', accent: '#f08080' },
+      { id: 'oven', label: '🔥 Horno Chimenea', x: 1190, y: 115, w: 225, h: 124, color: '#e5989b', accent: '#d00000' },
+      { id: 'fruitTable', label: '🧺 Canastas Fruta', x: 580, y: 785, w: 220, h: 108, color: '#fde4cf', accent: '#f4a261' },
+      { id: 'pantryShelf', label: '🗄️ Alacena Miel/Choco', x: 890, y: 785, w: 220, h: 108, color: '#e2ece9', accent: '#52b788' },
+      { id: 'jarsShelf', label: '🧪 Alacena de Frascos', x: 1190, y: 785, w: 220, h: 108, color: '#d8e2dc', accent: '#48cae4' }
+    ];
+
+    const kitchenSolids = [
+      ...cafeTables,
+      ...kitchenStations,
+      { x: 430, y: 0, w: 28, h: 350 },
+      { x: 430, y: 630, w: 28, h: 410 },
+      { x: KITCHEN_W - 16, y: 0, w: 32, h: 410 },
+      { x: KITCHEN_W - 16, y: 610, w: 32, h: 430 }
+    ];
+
+    const camP1 = { x: 0, y: 0, initialized: false };
+    const camP2 = { x: 0, y: 0, initialized: false };
+
+    function renderOrders() {
+      const bar = document.getElementById('ordersBar');
+      bar.innerHTML = '';
+      if (state.orders.length === 0) {
+        bar.innerHTML = '<span style="font-size:0.74rem;color:#ffd166;">Toma el pedido de un gatito cliente en su mesa con [R]</span>';
+        evaluateChefMissingIngredients();
+        return;
+      }
+      state.orders.forEach(o => {
+        const reqText = Object.entries(o.recipe.req)
+          .map(([k, v]) => `${v}x ${INGREDIENT_INFO[k].label.split(' ')[0]}`)
+          .join(' + ');
+        const div = document.createElement('div');
+        div.className = 'order-card';
+        div.innerHTML = `
+          <div class="order-head">
+            <span>🐱 ${o.customerName} (${o.tableLabel})</span>
+            <span>${o.recipe.name}</span>
+          </div>
+          <div class="order-steps"><strong>Ing:</strong> ${reqText} | ${o.recipe.stepLabels}</div>
+        `;
+        bar.appendChild(div);
+      });
+      evaluateChefMissingIngredients();
+    }
+
+    function updateHud() {
+      document.getElementById('scoreVal').textContent = state.score;
+
+      const p1Hud = document.getElementById('p1IngredientsHud');
+      const heldEntries = Object.entries(state.p1Stock).filter(([, v]) => v > 0);
+      p1Hud.innerHTML = '<strong>🍳 Chef:</strong> ' + (heldEntries.length
+        ? heldEntries.map(([k, v]) => `<span class="badge">${INGREDIENT_INFO[k].label}: ${v}</span>`).join('')
+        : '<span style="opacity:0.75">Manos libres</span>');
+
+      const counts = {};
+      state.p2Bag.forEach(i => (counts[i] = (counts[i] || 0) + 1));
+      const bagHud = document.getElementById('bagHud');
+      bagHud.innerHTML = `<strong>🎒 Mochila (${state.p2Bag.length}/${MAX_BAG_CAPACITY}):</strong> ` + (Object.keys(counts).length
+        ? Object.entries(counts).map(([k, v]) => `<span class="badge">${INGREDIENT_INFO[k].label}: ${v}</span>`).join('')
+        : '<span style="opacity:0.75">Vacía</span>');
+
+      evaluateChefMissingIngredients();
+    }
+
+    // ================= ACCIONES =================
+    function getAvailableCookQty(ing) {
+      let qty = state.p1Stock[ing] || 0;
+      if (gameConfig.mode === 'solo_hybrid') {
+        qty += state.p2Bag.filter(item => item === ing).length;
+      }
+      return qty;
+    }
+
+    function consumeCookIngredients(reqObj) {
+      for (const [k, v] of Object.entries(reqObj)) {
+        let remainingToTake = v;
+        const fromHand = Math.min(remainingToTake, state.p1Stock[k] || 0);
+        state.p1Stock[k] -= fromHand;
+        remainingToTake -= fromHand;
+
+        if (remainingToTake > 0 && gameConfig.mode === 'solo_hybrid') {
+          for (let i = state.p2Bag.length - 1; i >= 0 && remainingToTake > 0; i--) {
+            if (state.p2Bag[i] === k) {
+              state.p2Bag.splice(i, 1);
+              remainingToTake--;
+            }
+          }
+        }
+      }
+    }
+
+    function executeCookAction(actor, isBot = false) {
+      if (actor.actionTimer > 0) return false;
+
+      for (const st of kitchenStations) {
+        const cx = st.x + st.w / 2;
+        const cy = st.y + st.h / 2;
+        if (Math.hypot(actor.x - cx, actor.y - cy) < 145) {
+          if (st.id === 'fruitTable') {
+            if (state.orders.length === 0) {
+              if (!isBot) showToast('Primero toma el pedido de un gatito cliente con [R]');
+              return false;
+            }
+            const targetOrder = actor.activeOrder || state.orders[0];
+            let taken = 0;
+            for (const [ing, reqQty] of Object.entries(targetOrder.recipe.req)) {
+              if (INGREDIENT_INFO[ing].category !== 'fruit') continue;
+              const have = getAvailableCookQty(ing);
+              const need = Math.max(0, reqQty - have);
+              if (need > 0) {
+                const avail = state.fruitBaskets[ing] || 0;
+                const take = Math.min(need, avail);
+                if (take > 0) {
+                  state.fruitBaskets[ing] -= take;
+                  state.p1Stock[ing] = (state.p1Stock[ing] || 0) + take;
+                  taken += take;
+                }
+              }
+            }
+            if (taken > 0) {
+              actor.actionTimer = 8;
+              actor.actionMax = 8;
+              actor.actionType = 'grab';
+              spawnFxParticles(cx, cy - 10, '#ff75a0', 10, '🍓');
+              if (!isBot) showToast(`🧺 ¡Tomó ${taken} fruta(s)!`);
+              updateHud();
+              return true;
+            }
+            return false;
+          }
+
+          if (st.id === 'pantryShelf') {
+            if (state.orders.length === 0) {
+              if (!isBot) showToast('Primero toma el pedido de un gatito cliente con [R]');
+              return false;
+            }
+            const targetOrder = actor.activeOrder || state.orders[0];
+            let taken = 0;
+            for (const [ing, reqQty] of Object.entries(targetOrder.recipe.req)) {
+              if (INGREDIENT_INFO[ing].category !== 'pantry') continue;
+              const have = getAvailableCookQty(ing);
+              const need = Math.max(0, reqQty - have);
+              if (need > 0) {
+                const avail = state.pantryStock[ing] || 0;
+                const take = Math.min(need, avail);
+                if (take > 0) {
+                  state.pantryStock[ing] -= take;
+                  state.p1Stock[ing] = (state.p1Stock[ing] || 0) + take;
+                  taken += take;
+                }
+              }
+            }
+            if (taken > 0) {
+              actor.actionTimer = 8;
+              actor.actionMax = 8;
+              actor.actionType = 'grab';
+              spawnFxParticles(cx, cy - 10, '#ffd166', 10, '🍯');
+              if (!isBot) showToast(`🗄️ ¡Sacó ${taken} ingrediente(s)!`);
+              updateHud();
+              return true;
+            }
+            return false;
+          }
+
+          if (st.id === 'jarsShelf') {
+            if (state.emptyJarsStock > 0) {
+              state.emptyJarsStock--;
+              if (state.p2Bag.length < MAX_BAG_CAPACITY) {
+                state.p2Bag.push('frasco');
+                spawnFxParticles(cx, cy - 10, '#a2d2ff', 10, '🧪');
+                if (!isBot) showToast('🧪 ¡Tomaste un Frasco Vacío de la alacena!');
+                updateHud();
+                return true;
+              } else {
+                state.emptyJarsStock++;
+                if (!isBot) showToast('⚠️ Mochila llena, libera espacio.');
+              }
+            } else {
+              if (!isBot) showToast('⚠️ No quedan frascos en la alacena.');
+            }
+            return false;
+          }
+
+          if (st.id === 'chopBoard' || st.id === 'mixer' || st.id === 'oven') {
+            if (actor.holdingDish) {
+              if (!isBot) showToast(`Ya terminaste ${actor.holdingDish.recipe.name}. ¡Sírvelo con [R]!`);
+              return false;
+            }
+            if (state.orders.length === 0) {
+              if (!isBot) showToast('Primero toma el pedido de un gatito cliente con [R]');
+              return false;
+            }
+
+            if (!actor.activeOrder) {
+              const candidate = state.orders.find(o =>
+                Object.entries(o.recipe.req).every(([k, v]) => getAvailableCookQty(k) >= v)
+              );
+              if (!candidate) {
+                if (!isBot) showToast('¡Faltan ingredientes! Revisa Canastas 🧺, Alacena 🗄️ o Bosque');
+                return false;
+              }
+              const firstReqStation = candidate.recipe.steps[0];
+              const mapStation = { chop: 'chopBoard', mix: 'mixer', bake: 'oven' };
+              if (mapStation[firstReqStation] !== st.id) {
+                if (!isBot) showToast(`⚠️ Primero ve a: ${firstReqStation === 'chop' ? 'Mesa de Picar 🔪' : 'Batidora 🥣'}`);
+                return false;
+              }
+              consumeCookIngredients(candidate.recipe.req);
+              actor.activeOrder = candidate;
+              actor.stepIndex = 0;
+              renderOrders();
+            }
+
+            const expectedStep = actor.activeOrder.recipe.steps[actor.stepIndex];
+            const stationToStep = { chopBoard: 'chop', mixer: 'mix', oven: 'bake' };
+
+            if (stationToStep[st.id] !== expectedStep) {
+              if (!isBot) showToast('⚠️ ¡Paso equivocado!');
+              return false;
+            }
+
+            if (st.id === 'oven') {
+              if (state.ovenWood <= 0) {
+                if (gameConfig.mode === 'solo_hybrid' && state.p2Bag.includes('madera')) {
+                  const woodIdx = state.p2Bag.indexOf('madera');
+                  state.p2Bag.splice(woodIdx, 1);
+                  state.ovenWood++;
+                } else {
+                  if (!isBot) showToast('🪵 ¡El horno necesita leña!');
+                  evaluateChefMissingIngredients();
+                  return false;
+                }
+              }
+              state.ovenWood--;
+            }
+
+            actor.actionTimer = 22;
+            actor.actionMax = 22;
+            actor.actionType = expectedStep;
+            actor.stepIndex++;
+            spawnFxParticles(cx, cy - 12, expectedStep === 'bake' ? '#ff7b00' : '#ffb7d5', 14, expectedStep === 'chop' ? '🔪' : expectedStep === 'mix' ? '🥣' : '🔥');
+
+            if (actor.stepIndex >= actor.activeOrder.recipe.steps.length) {
+              actor.holdingDish = actor.activeOrder;
+              actor.activeOrder = null;
+              actor.stepIndex = 0;
+              spawnFxParticles(actor.x, actor.y - 25, '#ffd166', 18, '✨');
+              showToast(`✨ ¡${actor.holdingDish.recipe.name} listo para servir!`);
+            }
+            updateHud();
+            broadcastGameState();
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function executeOrderAction(actor, isBot = false) {
+      const targetActor = gameConfig.mode === 'solo_hybrid' ? p1 : actor;
+      if (targetActor.x > KITCHEN_W) {
+        const distBat = Math.hypot(actor.x - batEnemy.x, actor.y - batEnemy.y);
+        if (distBat < 105) {
+          if (state.p2Bag.includes('pelos')) {
+            const pelosIdx = state.p2Bag.indexOf('pelos');
+            state.p2Bag.splice(pelosIdx, 1);
+            batEnemy.calmTimer = 450;
+            spawnFxParticles(batEnemy.x, batEnemy.y, '#d8b4fe', 16, '💜');
+            if (!isBot) showToast('🦇 ¡Le diste los pelos de gato al murciélago con [R]! Volvió a su cueva.');
+            updateHud();
+            broadcastGameState();
+            return true;
+          } else {
+            if (!isBot) showToast('⚠️ ¡No tienes pelos de gato en tu mochila para darle al murciélago!');
+            return false;
+          }
+        }
+      }
+
+      for (const npc of npcCats) {
+        const tbl = cafeTables.find(t => t.id === npc.tableId);
+        const distNpc = Math.hypot(actor.x - npc.x, actor.y - npc.y);
+        const distTbl = tbl ? Math.hypot(actor.x - (tbl.x + tbl.w / 2), actor.y - (tbl.y + tbl.h / 2)) : 999;
+
+        if (distNpc < 130 || distTbl < 130) {
+          if (npc.state === 'waiting_order') {
+            npc.state = 'ordered';
+            state.orders.push({
+              uid: npc.uid,
+              customerName: npc.style.name,
+              tableId: npc.tableId,
+              tableLabel: tbl.label,
+              recipe: npc.recipe
+            });
+            spawnFxParticles(npc.x, npc.y - 20, '#ffd166', 10, '📋');
+            showToast(`📋 Pedido anotado de ${npc.style.name}: ${npc.recipe.name}`);
+            renderOrders();
+            updateHud();
+            broadcastGameState();
+            return true;
+          }
+
+          if (npc.state === 'ordered' && actor.holdingDish && actor.holdingDish.uid === npc.uid) {
+            state.score += npc.recipe.pts;
+            spawnFxParticles(npc.x, npc.y - 20, '#ff75a0', 20, '💖');
+            showToast(`🎉 ¡${npc.style.name} feliz! +${npc.recipe.pts} pts`);
+            state.orders = state.orders.filter(o => o.uid !== npc.uid);
+            actor.holdingDish = null;
+            npc.state = 'eating';
+            npc.eatTimer = 220;
+            renderOrders();
+            updateHud();
+            broadcastGameState();
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    // ================= BOSQUE EXTENDIDO Y CUEVA =================
+    const forestObstacles = [];
+    const forestTraps = [];
+    const forestNodes = [];
+    const choppableTrees = [];
+    const droppedItems = [];
+    const canopyTrees = [];
+    const fireflies = [];
+
+    function initDeepSpookyForest() {
+      const walls = [
+        { x: 1620, y: 630, w: 72, h: 410, isForestObstacle: true },
+        { x: 1940, y: 120, w: 78, h: 310, isForestObstacle: true },
+        { x: 1940, y: 620, w: 78, h: 310, isForestObstacle: true },
+        { x: 2280, y: 0, w: 82, h: 290, isForestObstacle: true },
+        { x: 2280, y: 450, w: 82, h: 240, isForestObstacle: true },
+        { x: 2280, y: 820, w: 82, h: 220, isForestObstacle: true },
+        { x: 2620, y: 110, w: 85, h: 350, isForestObstacle: true },
+        { x: 2620, y: 630, w: 85, h: 340, isForestObstacle: true },
+        { x: 2960, y: 0, w: 90, h: 340, isForestObstacle: true },
+        { x: 2960, y: 530, w: 90, h: 290, isForestObstacle: true },
+        { x: 3300, y: 150, w: 88, h: 360, isForestObstacle: true },
+        { x: 3300, y: 650, w: 88, h: 320, isForestObstacle: true },
+        { x: 3640, y: 0, w: 85, h: 350, isForestObstacle: true },
+        { x: 3640, y: 600, w: 85, h: 440, isForestObstacle: true }
+      ];
+
+      walls.forEach(w => {
+        forestObstacles.push(w);
+        for (let ty = w.y + 22; ty < w.y + w.h; ty += 48) {
+          for (let tx = w.x + 22; tx < w.x + w.w; tx += 42) {
+            canopyTrees.push({
+              x: tx + (Math.random() * 16 - 8),
+              y: ty + (Math.random() * 16 - 8),
+              r: 40 + Math.random() * 18,
+              hue: 145 + Math.random() * 55,
+              light: 12 + Math.random() * 11
+            });
+          }
+        }
+      });
+
+      for (let bx = KITCHEN_W + 40; bx < WORLD_W; bx += 85) {
+        canopyTrees.push({ x: bx, y: 18, r: 50, hue: 165, light: 10 });
+        canopyTrees.push({ x: bx + 40, y: WORLD_H - 18, r: 52, hue: 170, light: 9 });
+      }
+
+      const extraObst = [
+        { x: 1760, y: 760, w: 72, h: 38, type: 'branch', isForestObstacle: true },
+        { x: 2100, y: 370, w: 60, h: 60, type: 'bush', isForestObstacle: true },
+        { x: 2110, y: 780, w: 58, h: 58, type: 'bush', isForestObstacle: true },
+        { x: 2450, y: 270, w: 76, h: 40, type: 'branch', isForestObstacle: true },
+        { x: 2460, y: 720, w: 62, h: 62, type: 'bush', isForestObstacle: true },
+        { x: 2790, y: 450, w: 68, h: 68, type: 'bush', isForestObstacle: true },
+        { x: 3130, y: 280, w: 78, h: 40, type: 'branch', isForestObstacle: true },
+        { x: 3140, y: 740, w: 64, h: 64, type: 'bush', isForestObstacle: true },
+        { x: 3480, y: 390, w: 72, h: 42, type: 'branch', isForestObstacle: true }
+      ];
+      extraObst.forEach(o => forestObstacles.push(o));
+
+      const treeCoords = [
+        { x: 1550, y: 690 },
+        { x: 1840, y: 140 }, { x: 1850, y: 900 },
+        { x: 2140, y: 220 }, { x: 2150, y: 800 },
+        { x: 2480, y: 170 }, { x: 2490, y: 880 },
+        { x: 2820, y: 240 }, { x: 2830, y: 800 },
+        { x: 3160, y: 350 }, { x: 3170, y: 680 },
+        { x: 3520, y: 200 }, { x: 3530, y: 840 }
+      ];
+      treeCoords.forEach(tc => choppableTrees.push({ x: tc.x, y: tc.y, hp: 3, maxHp: 3, respawn: 0 }));
+
+      const trapSpecs = [
+        { x: 1760, y: 500, r: 22, vx: 0, vy: 2.0, minY: 360, maxY: 600, kind: 'spore' },
+        { x: 2115, y: 195, r: 24, vx: 0, vy: 0, kind: 'thorns' },
+        { x: 2115, y: 865, r: 24, vx: 0, vy: 0, kind: 'thorns' },
+        { x: 2460, y: 500, r: 23, vx: 2.2, vy: 0, minX: 2390, maxX: 2560, kind: 'spore' },
+        { x: 2790, y: 230, r: 25, vx: 0, vy: 2.4, minY: 140, maxY: 440, kind: 'spore' },
+        { x: 2790, y: 760, r: 25, vx: 0, vy: -2.4, minY: 620, maxY: 920, kind: 'spore' },
+        { x: 3140, y: 480, r: 26, vx: 2.5, vy: 0, minX: 3040, maxX: 3280, kind: 'spore' },
+        { x: 3490, y: 510, r: 25, vx: 0, vy: 2.2, minY: 420, maxY: 630, kind: 'spore' }
+      ];
+      trapSpecs.forEach(t => forestTraps.push(t));
+
+      const nodesData = [
+        { x: 1550, y: 870, type: 'miel' },
+        { x: 1800, y: 100, type: 'fresa' }, { x: 1810, y: 950, type: 'miel' },
+        { x: 2140, y: 85, type: 'mora' }, { x: 2140, y: 585, type: 'matcha' },
+        { x: 2140, y: 965, type: 'fresa' }, { x: 2220, y: 290, type: 'mora' },
+        { x: 2480, y: 110, type: 'choco' }, { x: 2480, y: 950, type: 'choco' },
+        { x: 2540, y: 390, type: 'matcha' }, { x: 2540, y: 650, type: 'mora' },
+        { x: 2860, y: 150, type: 'choco' }, { x: 2870, y: 530, type: 'mora' },
+        { x: 2860, y: 920, type: 'matcha' }, { x: 3220, y: 170, type: 'choco' },
+        { x: 3240, y: 530, type: 'mora' }, { x: 3220, y: 900, type: 'matcha' },
+        { x: 3580, y: 140, type: 'mora' }, { x: 3580, y: 920, type: 'fresa' }
+      ];
+      nodesData.forEach(nd => forestNodes.push({ ...nd, active: true, respawn: 0 }));
+
+      for (let i = 0; i < 85; i++) {
+        fireflies.push({
+          x: KITCHEN_W + 60 + Math.random() * (WORLD_W - KITCHEN_W - 60),
+          y: 25 + Math.random() * (WORLD_H - 50),
+          phase: Math.random() * Math.PI * 2,
+          color: i % 3 === 0 ? '#ffb703' : i % 3 === 1 ? '#a8ff78' : '#ff75a0'
+        });
+      }
+    }
+
+    function executeCollectAction(actor, isBot = false) {
+      if (actor.stunTimer > 0) return false;
+
+      const fruitSt = kitchenStations.find(s => s.id === 'fruitTable');
+      const pantrySt = kitchenStations.find(s => s.id === 'pantryShelf');
+      const ovenSt = kitchenStations.find(s => s.id === 'oven');
+      const jarsSt = kitchenStations.find(s => s.id === 'jarsShelf');
+
+      const nearFruit = Math.hypot(actor.x - (fruitSt.x + fruitSt.w / 2), actor.y - (fruitSt.y + fruitSt.h / 2)) < 145;
+      const nearPantry = Math.hypot(actor.x - (pantrySt.x + pantrySt.w / 2), actor.y - (pantrySt.y + pantrySt.h / 2)) < 145;
+      const nearOven = Math.hypot(actor.x - (ovenSt.x + ovenSt.w / 2), actor.y - (ovenSt.y + ovenSt.h / 2)) < 145;
+      const nearJars = Math.hypot(actor.x - (jarsSt.x + jarsSt.w / 2), actor.y - (jarsSt.y + jarsSt.h / 2)) < 145;
+
+      if (nearFruit || nearPantry || nearOven || nearJars) {
+        if (state.p2Bag.length === 0) return false;
+        let deposited = 0;
+        const remaining = [];
+        for (const item of state.p2Bag) {
+          const cat = INGREDIENT_INFO[item].category;
+          if (cat === 'fruit' && (nearFruit || nearPantry)) {
+            state.fruitBaskets[item] = (state.fruitBaskets[item] || 0) + 1;
+            deposited++;
+          } else if (cat === 'pantry' && (nearPantry || nearFruit)) {
+            state.pantryStock[item] = (state.pantryStock[item] || 0) + 1;
+            deposited++;
+          } else if (cat === 'fuel' && (nearOven || nearFruit)) {
+            state.ovenWood += 1;
+            deposited++;
+          } else if (cat === 'special' && item === 'pelos') {
+            state.score += 50;
+            deposited++;
+            if (!isBot) showToast('✨ ¡Depositaste pelos de gato! +50 pts');
+          } else {
+            remaining.push(item);
+          }
+        }
+        state.p2Bag = remaining;
+        if (deposited > 0) {
+          spawnFxParticles(actor.x, actor.y - 15, '#52b788', 12, '📦');
+          updateHud();
+          broadcastGameState();
+          return true;
+        }
+        return false;
+      }
+
+      for (const tbl of cafeTables) {
+        if (tbl.hairPile && Math.hypot(actor.x - (tbl.x + tbl.w / 2), actor.y - (tbl.y + tbl.h / 2)) < 105) {
+          if (state.p2Bag.includes('frasco')) {
+            const frascoIdx = state.p2Bag.indexOf('frasco');
+            state.p2Bag.splice(frascoIdx, 1);
+            tbl.hairPile = null;
+            if (state.p2Bag.length < MAX_BAG_CAPACITY) {
+              state.p2Bag.push('pelos');
+              spawnFxParticles(tbl.x + tbl.w / 2, tbl.y, '#d8b4fe', 14, '🐈');
+              if (!isBot) showToast('🐈🧹 ¡Recogiste los pelos de gato en un frasco!');
+              updateHud();
+              broadcastGameState();
+              return true;
+            }
+          } else {
+            if (!isBot) showToast('⚠️ ¡Necesitas un Frasco Vacío 🧪 de la alacena para recoger los pelos!');
+            return false;
+          }
+        }
+      }
+
+      if (state.p2Bag.length >= MAX_BAG_CAPACITY) {
+        if (!isBot) showToast(`¡Mochila llena (${MAX_BAG_CAPACITY}/${MAX_BAG_CAPACITY})! Guarda en la cocina [1]`);
+        return false;
+      }
+
+      for (let i = droppedItems.length - 1; i >= 0; i--) {
+        const d = droppedItems[i];
+        if (Math.hypot(actor.x - d.x, actor.y - d.y) < 68) {
+          droppedItems.splice(i, 1);
+          state.p2Bag.push(d.type);
+          spawnFxParticles(d.x, d.y, INGREDIENT_INFO[d.type].color, 10);
+          if (!isBot) showToast(`✨ Recogió ${INGREDIENT_INFO[d.type].label}`);
+          updateHud();
+          broadcastGameState();
+          return true;
+        }
+      }
+
+      for (const node of forestNodes) {
+        if (node.active && Math.hypot(actor.x - node.x, actor.y - node.y) < 68) {
+          node.active = false;
+          node.respawn = 340;
+          state.p2Bag.push(node.type);
+          spawnFxParticles(node.x, node.y, INGREDIENT_INFO[node.type].color, 12, INGREDIENT_INFO[node.type].label.split(' ')[0]);
+          if (!isBot) showToast(`🌿 Recolectó ${INGREDIENT_INFO[node.type].label}`);
+          updateHud();
+          broadcastGameState();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function executeChopTreeAction(actor, isBot = false) {
+      if (actor.stunTimer > 0) return false;
+      for (const tree of choppableTrees) {
+        if (tree.hp > 0 && Math.hypot(actor.x - tree.x, actor.y - tree.y) < 88) {
+          actor.chopAnim = 18;
+          tree.hp--;
+          spawnFxParticles(tree.x, tree.y - 10, '#a47148', 10, '🪓');
+          if (tree.hp <= 0) {
+            tree.respawn = 450;
+            for (let k = 0; k < 2; k++) {
+              if (state.p2Bag.length < MAX_BAG_CAPACITY) state.p2Bag.push('madera');
+              else droppedItems.push({ type: 'madera', x: tree.x + (k === 0 ? -24 : 24), y: tree.y + 20 });
+            }
+            if (!isBot) showToast('🗡️🪵 ¡Árbol cortado! Obtuviste madera');
+            updateHud();
+          }
+          broadcastGameState();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function resolveCollisions(entity, solids) {
+      for (const box of solids) {
+        const closestX = Math.max(box.x, Math.min(entity.x, box.x + box.w));
+        const closestY = Math.max(box.y, Math.min(entity.y, box.y + box.h));
+        const dx = entity.x - closestX;
+        const dy = entity.y - closestY;
+        const dist = Math.hypot(dx, dy);
+        if (dist < entity.r) {
+          if (dist === 0) {
+            entity.x += entity.r;
+          } else {
+            const overlap = entity.r - dist;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            entity.x += nx * overlap;
+            entity.y += ny * overlap;
+          }
+        }
+      }
+    }
+
+    // ================= IA AUTÓNOMA =================
+    const FOREST_CORRIDORS = [
+      { wallX: KITCHEN_W, openY: [510] },
+      { wallX: 1656, openY: [480] },
+      { wallX: 1980, openY: [75, 520, 960] },
+      { wallX: 2320, openY: [370, 750] },
+      { wallX: 2660, openY: [65, 540, 995] },
+      { wallX: 3000, openY: [430, 910] },
+      { wallX: 3340, openY: [85, 580] },
+      { wallX: 3680, openY: [470] }
+    ];
+
+    function getSafeWaypoint(fromX, fromY, toX, toY) {
+      const goingRight = toX > fromX;
+      for (const c of FOREST_CORRIDORS) {
+        if ((goingRight && fromX < c.wallX - 25 && toX > c.wallX + 25) ||
+            (!goingRight && fromX > c.wallX + 25 && toX < c.wallX - 25)) {
+          let bestY = c.openY[0];
+          let minCost = Infinity;
+          for (const oy of c.openY) {
+            const cost = Math.abs(fromY - oy) + Math.abs(toY - oy);
+            if (cost < minCost) { minCost = cost; bestY = oy; }
+          }
+          const approachX = goingRight ? c.wallX - 55 : c.wallX + 55;
+          if (Math.abs(fromX - c.wallX) > 45 && Math.abs(fromY - bestY) > 32) return { x: approachX, y: bestY };
+          return { x: goingRight ? c.wallX + 60 : c.wallX - 60, y: bestY };
+        }
+      }
+      return { x: toX, y: toY };
+    }
+
+    function moveTowardsSmart(entity, tx, ty, spd) {
+      const distDirect = Math.hypot(tx - entity.x, ty - entity.y);
+      if (distDirect <= 16) {
+        entity.stuckFrames = 0;
+        entity.vx = 0; entity.vy = 0;
+        return true;
+      }
+
+      if (entity.lastAiX !== undefined) {
+        const moved = Math.hypot(entity.x - entity.lastAiX, entity.y - entity.lastAiY);
+        entity.stuckFrames = moved < 0.8 ? (entity.stuckFrames || 0) + 1 : Math.max(0, (entity.stuckFrames || 0) - 1);
+      }
+      entity.lastAiX = entity.x;
+      entity.lastAiY = entity.y;
+
+      const wp = getSafeWaypoint(entity.x, entity.y, tx, ty);
+      let gdx = wp.x - entity.x;
+      let gdy = wp.y - entity.y;
+      const gdist = Math.hypot(gdx, gdy) || 1;
+      gdx /= gdist;
+      gdy /= gdist;
+
+      if ((entity.stuckFrames || 0) > 10) {
+        if (entity.stuckFrames % 40 === 0) entity.dodgeDir = -(entity.dodgeDir || 1);
+        const side = entity.dodgeDir || 1;
+        gdx = gdx * 0.3 + (-gdy * side) * 0.9;
+        gdy = gdy * 0.3 + (gdx * side) * 0.9;
+        const norm = Math.hypot(gdx, gdy) || 1;
+        gdx /= norm;
+        gdy /= norm;
+      }
+
+      entity.vx = gdx * spd;
+      entity.vy = gdy * spd;
+      entity.x += entity.vx;
+      entity.y += entity.vy;
+      if (Math.abs(gdx) > 0.25) entity.dir = gdx > 0 ? 1 : -1;
+      return false;
+    }
+
+    function updateAiGatherer(bot) {
+      const carriesNeeded = state.p2Bag.some(item => state.missingItemsList.includes(item));
+      if (state.p2Bag.length >= 4 || (carriesNeeded && state.p2Bag.length >= 1) || (state.ovenWood === 0 && state.p2Bag.includes('madera'))) {
+        const hasWood = state.p2Bag.includes('madera');
+        const hasPantry = state.p2Bag.some(i => INGREDIENT_INFO[i].category === 'pantry');
+        const targetSt = hasWood ? kitchenStations.find(s => s.id === 'oven') : hasPantry ? kitchenStations.find(s => s.id === 'pantryShelf') : kitchenStations.find(s => s.id === 'fruitTable');
+        const standY = targetSt.y > 500 ? targetSt.y - 30 : targetSt.y + targetSt.h + 30;
+        if (moveTowardsSmart(bot, targetSt.x + targetSt.w / 2, standY, bot.speed * 0.98)) executeCollectAction(bot, true);
+        return;
+      }
+
+      if (state.ovenWood <= 1 || state.missingItemsList.includes('madera')) {
+        let bestTree = null;
+        let minTreeDist = Infinity;
+        for (const t of choppableTrees) {
+          if (t.hp > 0) {
+            const d = Math.hypot(bot.x - t.x, bot.y - t.y);
+            if (d < minTreeDist) { minTreeDist = d; bestTree = t; }
+          }
+        }
+        if (bestTree) {
+          if (moveTowardsSmart(bot, bestTree.x - 36, bestTree.y, bot.speed * 0.98)) {
+            if (bot.chopAnim === 0) executeChopTreeAction(bot, true);
+          }
+          return;
+        }
+      }
+
+      const priorityIng = state.missingItemsList.find(ing => ing !== 'madera');
+      let targetNode = null;
+      let minNodeDist = Infinity;
+      for (const n of forestNodes) {
+        if (!n.active) continue;
+        if (priorityIng && n.type !== priorityIng) continue;
+        const d = Math.hypot(bot.x - n.x, bot.y - n.y);
+        if (d < minNodeDist) { minNodeDist = d; targetNode = n; }
+      }
+      if (!targetNode) {
+        for (const n of forestNodes) {
+          if (!n.active) continue;
+          const d = Math.hypot(bot.x - n.x, bot.y - n.y);
+          if (d < minNodeDist) { minNodeDist = d; targetNode = n; }
+        }
+      }
+      if (targetNode) {
+        if (moveTowardsSmart(bot, targetNode.x, targetNode.y, bot.speed * 0.98)) executeCollectAction(bot, true);
+      }
+    }
+
+    function updateAiChef(bot) {
+      if (bot.actionTimer > 0) return;
+      if (bot.holdingDish) {
+        const tbl = cafeTables.find(t => t.id === bot.holdingDish.tableId);
+        if (tbl && moveTowardsSmart(bot, tbl.x + tbl.w + 30, tbl.y + 42, bot.speed * 1.15)) executeOrderAction(bot, true);
+        return;
+      }
+      if (bot.activeOrder) {
+        const step = bot.activeOrder.recipe.steps[bot.stepIndex];
+        const stId = step === 'chop' ? 'chopBoard' : step === 'mix' ? 'mixer' : 'oven';
+        const st = kitchenStations.find(s => s.id === stId);
+        const standY = st.y > 500 ? st.y - 30 : st.y + st.h + 30;
+        if (st && moveTowardsSmart(bot, st.x + st.w / 2, standY, bot.speed * 1.15)) executeCookAction(bot, true);
+        return;
+      }
+      const waitingNpc = npcCats.find(n => n.state === 'waiting_order');
+      if (waitingNpc) {
+        const tbl = cafeTables.find(t => t.id === waitingNpc.tableId);
+        if (tbl && moveTowardsSmart(bot, tbl.x + tbl.w + 30, tbl.y + 42, bot.speed * 1.15)) executeOrderAction(bot, true);
+        return;
+      }
+      if (state.orders.length > 0) {
+        const ord = state.orders[0];
+        const hasAllInHand = Object.entries(ord.recipe.req).every(([k, v]) => (state.p1Stock[k] || 0) >= v);
+        if (hasAllInHand) {
+          const firstStep = ord.recipe.steps[0];
+          const stId = firstStep === 'chop' ? 'chopBoard' : firstStep === 'mix' ? 'mixer' : 'oven';
+          const st = kitchenStations.find(s => s.id === stId);
+          const standY = st.y > 500 ? st.y - 30 : st.y + st.h + 30;
+          if (st && moveTowardsSmart(bot, st.x + st.w / 2, standY, bot.speed * 1.15)) executeCookAction(bot, true);
+        }
+      }
+    }
+
+    // ================= CONTROLES =================
+    const keysDown = {};
+
+    function getMyControlledActor() {
+      if (gameConfig.mode === 'solo_hybrid') return p1;
+      if (gameConfig.mode === 'solo_ai') return gameConfig.soloAiPlayerRole === 'gatherer' ? p2 : p1;
+      if (gameConfig.isRemoteConnected) return gameConfig.isHost ? p1 : p2;
+      return p1;
+    }
+
+    function triggerActionE() { const a = getMyControlledActor(); if (!executeCookAction(a) && (gameConfig.mode === 'solo_hybrid' || (gameConfig.isRemoteConnected && !gameConfig.isHost))) executeCollectAction(a); }
+    function triggerActionR() { executeOrderAction(getMyControlledActor()); }
+    function triggerAction1() { const c = gameConfig.isRemoteConnected ? getMyControlledActor() : (gameConfig.mode === 'solo_hybrid' ? p1 : p2); executeCollectAction(c); }
+    function triggerAction2() { const c = gameConfig.isRemoteConnected ? getMyControlledActor() : (gameConfig.mode === 'solo_hybrid' ? p1 : p2); executeChopTreeAction(c); }
+
+    window.addEventListener('keydown', e => {
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+      keysDown[e.code] = true;
+      if (!state.started) return;
+      if (e.code === 'KeyE') { e.preventDefault(); triggerActionE(); }
+      if (e.code === 'KeyR') { e.preventDefault(); triggerActionR(); }
+      if (e.code === 'Digit1' || e.code === 'Numpad1') { e.preventDefault(); triggerAction1(); }
+      if (e.code === 'Digit2' || e.code === 'Numpad2') { e.preventDefault(); triggerAction2(); }
+    });
+    window.addEventListener('keyup', e => { keysDown[e.code] = false; });
+
+    // ================= RENDERIZADO DE GATITOS ULTRA CUTE Y ESPONJOSITOS =================
+    function drawRoundedBox(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+      else ctx.rect(x, y, w, h);
+    }
+
+    function drawCatCharacter(ctx, cat, opts) {
+      const { x, y, dir, vx = 0, vy = 0 } = cat;
+      const { furColor, furShade, earInner, pawTint, gearMode, scarfColor, stripes, eyeColor, outfit, name, status, actionType, actionTimer, chopAnim, hideShadow } = opts;
+      const isMoving = Math.hypot(vx, vy) > 0.25;
+      const walkBob = isMoving ? Math.abs(Math.sin(Date.now() / 85)) * 3.5 : Math.sin(Date.now() / 320) * 1.1;
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      if (!hideShadow) {
+        const shadowGrad = ctx.createRadialGradient(0, 28, 2, 0, 28, 25);
+        shadowGrad.addColorStop(0, 'rgba(15, 10, 20, 0.45)');
+        shadowGrad.addColorStop(1, 'rgba(15, 10, 20, 0)');
+        ctx.fillStyle = shadowGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 28, 24, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.translate(0, -walkBob);
+
+      if (gearMode === 'explorer') {
+        ctx.save();
+        ctx.rotate(-dir * 0.55);
+        ctx.fillStyle = '#e0e1dd';
+        ctx.strokeStyle = '#1b263b';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-3, -34); ctx.lineTo(3, -34); ctx.lineTo(3, -8); ctx.lineTo(-3, -8); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-3, -34); ctx.lineTo(0, -41); ctx.lineTo(3, -34); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffb703'; ctx.fillRect(-7, -10, 14, 3.5);
+        ctx.fillStyle = '#6f4518'; ctx.fillRect(-2, -6.5, 4, 8);
+        ctx.restore();
+
+        ctx.fillStyle = '#bc6c25';
+        ctx.strokeStyle = '#3d2833';
+        ctx.lineWidth = 2;
+        drawRoundedBox(ctx, -dir * 17 - 7, 2, 14, 18, 6);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#dda15e'; ctx.fillRect(-dir * 17 - 5, 6, 10, 5);
+      }
+
+      // Cola esponjosita
+      const wag = Math.sin(Date.now() / 150) * 6;
+      ctx.strokeStyle = furColor;
+      ctx.lineWidth = 11.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-dir * 13, 16);
+      ctx.quadraticCurveTo(-dir * 34, 3 + wag, -dir * 27, -11 + wag);
+      ctx.stroke();
+
+      // Cuerpo esponjosito
+      const bodyGrad = ctx.createRadialGradient(-4, 8, 3, 0, 14, 20);
+      bodyGrad.addColorStop(0, furColor);
+      bodyGrad.addColorStop(1, furShade || '#f3e1e6');
+      ctx.fillStyle = bodyGrad;
+      drawRoundedBox(ctx, -16.5, 4, 33, 24, 15);
+      ctx.fill(); ctx.strokeStyle = '#3d2833'; ctx.lineWidth = 2; ctx.stroke();
+
+      // Vestimenta especial de Mochi (vestidito rosa pastel con mayor contraste y textura) o Thom (hip-hop)
+      if (outfit === 'dress_pink') {
+        const dressGrad = ctx.createLinearGradient(0, 3, 0, 25);
+        dressGrad.addColorStop(0, '#ff8fab');
+        dressGrad.addColorStop(0.55, '#fb6f92');
+        dressGrad.addColorStop(1, '#e55982');
+        ctx.fillStyle = dressGrad;
+        ctx.beginPath();
+        ctx.moveTo(-15, 4);
+        ctx.lineTo(15, 4);
+        ctx.lineTo(22, 23);
+        ctx.quadraticCurveTo(0, 28, -22, 23);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#9e2a53';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Pliegues verticales y textura de tela en el vestidito
+        ctx.strokeStyle = 'rgba(158, 42, 83, 0.42)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(-8, 8); ctx.lineTo(-12, 22);
+        ctx.moveTo(0, 8); ctx.lineTo(0, 24);
+        ctx.moveTo(8, 8); ctx.lineTo(12, 22);
+        ctx.stroke();
+
+        // Cinturón de listón con pequeño moñito en la cintura
+        ctx.fillStyle = '#fff0f5';
+        ctx.fillRect(-15.5, 9, 31, 3.5);
+        ctx.fillStyle = '#ff477e';
+        ctx.beginPath();
+        ctx.arc(0, 10.7, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Encaje blanco inferior del vestidito con borde definido
+        ctx.fillStyle = '#fff5f8';
+        ctx.strokeStyle = '#c94c7c';
+        ctx.lineWidth = 1.2;
+        for (let lx = -16; lx <= 16; lx += 6.4) {
+          ctx.beginPath();
+          ctx.arc(lx, 23.2, 3.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        // Cuellito peter pan blanco
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-5, 5.5, 4, 0, Math.PI * 2);
+        ctx.arc(5, 5.5, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (outfit === 'hiphop') {
+        // Sudadera oversize estilo hip-hop con bolsillo canguro
+        ctx.fillStyle = '#2b2d42';
+        drawRoundedBox(ctx, -17.5, 4, 35, 22, 11);
+        ctx.fill();
+        ctx.strokeStyle = '#141118';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Franja urbana y bolsillo frontal
+        ctx.fillStyle = '#ef233c';
+        ctx.fillRect(-16, 17, 32, 4.5);
+        ctx.fillStyle = '#3a3d56';
+        drawRoundedBox(ctx, -10, 13, 20, 9, 4);
+        ctx.fill();
+
+        // Cadena dorada hip-hop con medallón
+        ctx.strokeStyle = '#ffbe0b';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.arc(0, 6.5, 8.5, 0.12 * Math.PI, 0.88 * Math.PI);
+        ctx.stroke();
+        ctx.fillStyle = '#ffd166';
+        ctx.beginPath();
+        ctx.arc(0, 15.5, 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath(); ctx.ellipse(0, 14, 9.5, 8, 0, 0, Math.PI * 2); ctx.fill();
+      }
+
+      if (scarfColor && !outfit) {
+        ctx.fillStyle = scarfColor;
+        ctx.beginPath(); ctx.moveTo(-14, 5); ctx.lineTo(14, 5); ctx.lineTo(0, 16); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+      }
+
+      // Patitas
+      const legStride = isMoving ? Math.sin(Date.now() / 85) * 3.5 : 0;
+      if (outfit === 'hiphop') {
+        // Tenis hip-hop
+        ctx.fillStyle = '#ef233c';
+        drawRoundedBox(ctx, -14, 21 + legStride, 12, 7, 3.5);
+        ctx.fill(); ctx.strokeStyle = '#141118'; ctx.lineWidth = 1.6; ctx.stroke();
+        drawRoundedBox(ctx, 2, 21 - legStride, 12, 7, 3.5);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-13, 25.5 + legStride, 10, 2);
+        ctx.fillRect(3, 25.5 - legStride, 10, 2);
+      } else {
+        const pawGradL = ctx.createRadialGradient(-8, 24, 1, -8, 24, 8.5);
+        pawGradL.addColorStop(0, pawTint); pawGradL.addColorStop(1, furColor);
+        ctx.fillStyle = pawGradL; ctx.beginPath(); ctx.ellipse(-8, 24 + legStride, 8, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#3d2833'; ctx.lineWidth = 1.8; ctx.stroke();
+
+        const pawGradR = ctx.createRadialGradient(8, 24, 1, 8, 24, 8.5);
+        pawGradR.addColorStop(0, pawTint); pawGradR.addColorStop(1, furColor);
+        ctx.fillStyle = pawGradR; ctx.beginPath(); ctx.ellipse(8, 24 - legStride, 8, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+
+      // Manitas / bracitos
+      const cookSwing = actionTimer > 0 ? Math.sin(Date.now() / 42) * 7 : 0;
+      const axeSwing = chopAnim > 0 ? Math.sin(Date.now() / 35) * 9 : 0;
+      const handColor = outfit === 'hiphop' ? '#2b2d42' : outfit === 'dress_pink' ? '#ffc8dd' : furColor;
+
+      ctx.fillStyle = handColor;
+      ctx.strokeStyle = '#3d2833';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.ellipse(-15, 13 + cookSwing, 6.5, 5.5, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(15, 13 - cookSwing + axeSwing, 6.5, 5.5, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      if (actionTimer > 0 && actionType) {
+        ctx.font = '18px sans-serif';
+        const toolIcon = actionType === 'chop' ? '🔪' : actionType === 'mix' ? '🥄' : actionType === 'bake' ? '🔥' : '✨';
+        ctx.fillText(toolIcon, 20, 8 + cookSwing);
+      }
+
+      if (chopAnim > 0) {
+        ctx.font = '19px sans-serif';
+        ctx.fillText('🗡️', 21, 8 + axeSwing);
+      }
+
+      // Orejitas esponjosas
+      ctx.fillStyle = furColor;
+      ctx.strokeStyle = '#3d2833';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-21, -11); ctx.quadraticCurveTo(-17, -36, -13, -34); ctx.lineTo(-3, -17); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(21, -11); ctx.quadraticCurveTo(17, -36, 13, -34); ctx.lineTo(3, -17); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = earInner;
+      ctx.beginPath(); ctx.moveTo(-18, -13); ctx.lineTo(-13.5, -28); ctx.lineTo(-6, -17); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(18, -13); ctx.lineTo(13.5, -28); ctx.lineTo(6, -17); ctx.closePath(); ctx.fill();
+
+      // Cabeza súper esponjosita con pelaje en los cachetes
+      const headGrad = ctx.createRadialGradient(-5, -14, 4, 0, -8, 25);
+      headGrad.addColorStop(0, furColor);
+      headGrad.addColorStop(1, furShade || '#f0dce3');
+      ctx.fillStyle = headGrad;
+      ctx.strokeStyle = '#3d2833';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, -8, 24.5, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Mechones esponjosos laterales en las mejillas
+      ctx.fillStyle = furColor;
+      ctx.beginPath();
+      ctx.arc(-23, -6, 5.2, 0.4 * Math.PI, 1.5 * Math.PI);
+      ctx.arc(23, -6, 5.2, 1.5 * Math.PI, 0.6 * Math.PI);
+      ctx.fill();
+
+      // Rayitas de pelaje en la frente
+      if (stripes) {
+        ctx.strokeStyle = stripes;
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-4.5, -25); ctx.lineTo(-4.5, -18.5);
+        ctx.moveTo(0, -26.5); ctx.lineTo(0, -17.5);
+        ctx.moveTo(4.5, -25); ctx.lineTo(4.5, -18.5);
+        ctx.stroke();
+      }
+
+      // Accesorios de cabeza: Gorra puesta arriba en la coronilla de Thom (igual que el gorrito de chef)
+      if (outfit === 'hiphop') {
+        const capY = gearMode === 'chef' ? -30 : -24;
+        ctx.save();
+        ctx.translate(0, capY);
+        // Copa redondeada de la gorra asentada justo en la parte superior de la cabeza entre las orejitas
+        const capGrad = ctx.createLinearGradient(0, -14, 0, 2);
+        capGrad.addColorStop(0, '#ff4d6d');
+        capGrad.addColorStop(1, '#c9184a');
+        ctx.fillStyle = capGrad;
+        ctx.beginPath();
+        ctx.arc(0, 1, 13.5, Math.PI, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#141118';
+        ctx.lineWidth = 1.9;
+        ctx.stroke();
+
+        // Paneles y botón superior de la gorra
+        ctx.strokeStyle = '#800f2f';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(0, -12.5); ctx.quadraticCurveTo(-4, -6, -4.5, 1);
+        ctx.moveTo(0, -12.5); ctx.quadraticCurveTo(4, -6, 4.5, 1);
+        ctx.stroke();
+        ctx.fillStyle = '#ffbe0b';
+        ctx.beginPath(); ctx.arc(0, -13.2, 2.3, 0, Math.PI * 2); ctx.fill();
+
+        // Visera plana orientada hacia un lado
+        ctx.fillStyle = '#2b2d42';
+        drawRoundedBox(ctx, 1, -2.5, 19.5, 4.8, 2.4);
+        ctx.fill();
+        ctx.strokeStyle = '#141118';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (gearMode === 'chef' && outfit !== 'hiphop') {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(-6, -30, 7.5, 0, Math.PI * 2); ctx.arc(6, -30, 7.5, 0, Math.PI * 2); ctx.arc(0, -34, 9.5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#3d2833'; ctx.lineWidth = 1.8; ctx.stroke();
+        ctx.fillRect(-10, -27, 20, 5);
+      }
+
+      // Moñito rosa pastel de Mochi (visible sobre el gorro de chef o en su cabecita)
+      if (outfit === 'dress_pink') {
+        const bowY = gearMode === 'chef' ? -43 : -27;
+        ctx.save();
+        ctx.translate(0, bowY);
+        ctx.fillStyle = '#ff8fab';
+        ctx.strokeStyle = '#9e2a53';
+        ctx.lineWidth = 1.7;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(-11, -8, -11, 0);
+        ctx.quadraticCurveTo(-11, 8, 0, 0);
+        ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(11, -8, 11, 0);
+        ctx.quadraticCurveTo(11, 8, 0, 0);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ff477e';
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.2, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+
+      // Ojitos expresivos súper tiernos (con soporte para expresiones en poses)
+      const iris = eyeColor || '#141118';
+      const faceExpr = opts.expression || 'normal';
+      if (faceExpr === 'happy') {
+        ctx.strokeStyle = iris;
+        ctx.lineWidth = 2.8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(-9.5, -7, 4.8, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(9.5, -7, 4.8, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+      } else if (faceExpr === 'wink') {
+        ctx.fillStyle = iris;
+        ctx.beginPath(); ctx.ellipse(-9.5, -8, 5.2, 6, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(-11, -10.5, 2.2, 0, Math.PI * 2); ctx.arc(-7.5, -6, 1.1, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = iris;
+        ctx.lineWidth = 2.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(5.5, -9.5); ctx.lineTo(13.5, -7.5); ctx.lineTo(5.5, -5.5);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = iris;
+        ctx.beginPath(); ctx.ellipse(-9.5, -8, 5.2, 6, 0, 0, Math.PI * 2); ctx.ellipse(9.5, -8, 5.2, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(-11, -10.5, 2.2, 0, Math.PI * 2); ctx.arc(8, -10.5, 2.2, 0, Math.PI * 2);
+        ctx.arc(-7.5, -6, 1.1, 0, Math.PI * 2); ctx.arc(11.5, -6, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Pestañitas femeninas para Mochi
+      if (outfit === 'dress_pink') {
+        ctx.strokeStyle = '#2b1922';
+        ctx.lineWidth = 1.8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        // Pestañas ojo izquierdo
+        ctx.moveTo(-14, -10.5); ctx.lineTo(-17.5, -12.5);
+        ctx.moveTo(-12.5, -13); ctx.lineTo(-15, -15.5);
+        // Pestañas ojo derecho
+        ctx.moveTo(14, -10.5); ctx.lineTo(17.5, -12.5);
+        ctx.moveTo(12.5, -13); ctx.lineTo(15, -15.5);
+        ctx.stroke();
+      }
+
+      // Cejas pobladas y expresión enojada para Thom
+      if (outfit === 'hiphop') {
+        // Párpado superior inclinado para reforzar el ceño fruncido
+        ctx.fillStyle = furColor;
+        ctx.beginPath();
+        ctx.moveTo(-16, -15); ctx.lineTo(-3, -10); ctx.lineTo(-16, -10); ctx.closePath();
+        ctx.moveTo(16, -15); ctx.lineTo(3, -10); ctx.lineTo(16, -10); ctx.closePath();
+        ctx.fill();
+
+        // Cejas pobladas gruesas inclinadas hacia el centro
+        ctx.strokeStyle = '#3b1f0b';
+        ctx.lineWidth = 4.2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-16.5, -15.5); ctx.lineTo(-3.5, -10.2);
+        ctx.moveTo(16.5, -15.5); ctx.lineTo(3.5, -10.2);
+        ctx.stroke();
+      }
+
+      // Bigotitos
+      ctx.strokeStyle = 'rgba(61, 40, 51, 0.5)'; ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-15, -5); ctx.lineTo(-26, -7);
+      ctx.moveTo(-15, -2); ctx.lineTo(-26, -1);
+      ctx.moveTo(15, -5); ctx.lineTo(26, -7);
+      ctx.moveTo(15, -2); ctx.lineTo(26, -1);
+      ctx.stroke();
+
+      // Naricita y boquita (enojadita para Thom, ":3" tierna para los demás)
+      ctx.fillStyle = '#ff758f'; ctx.beginPath(); ctx.arc(0, -4, 2.3, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#3d2833'; ctx.lineWidth = 1.7;
+      if (outfit === 'hiphop') {
+        ctx.beginPath();
+        ctx.arc(0, 1.5, 4.2, 1.15 * Math.PI, 1.85 * Math.PI);
+        ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(-2.8, -2.5, 2.6, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke();
+        ctx.beginPath(); ctx.arc(2.8, -2.5, 2.6, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke();
+      }
+
+      // Chapitas sonrojadas
+      ctx.fillStyle = 'rgba(255, 115, 160, 0.65)';
+      ctx.beginPath(); ctx.ellipse(-15, -2.8, 5.2, 3, 0, 0, Math.PI * 2); ctx.ellipse(15, -2.8, 5.2, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+      if (name) {
+        ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        ctx.strokeStyle = '#1b1420'; ctx.lineWidth = 3;
+        const labelY = gearMode === 'chef' ? (outfit === 'dress_pink' ? -54 : -46) : -40;
+        ctx.strokeText(name, 0, labelY);
+        ctx.fillStyle = '#ffffff'; ctx.fillText(name, 0, labelY);
+      }
+
+      if (status) {
+        ctx.fillStyle = '#ffd166'; ctx.font = 'bold 11.5px sans-serif'; ctx.textAlign = 'center';
+        ctx.strokeStyle = '#1b1420'; ctx.lineWidth = 3;
+        ctx.strokeText(status, 0, 44); ctx.fillText(status, 0, 44);
+      }
+
+      ctx.restore();
+    }
+
+    // ================= RENDERIZADO DE VISTAS 2.5D =================
+    function renderViewport(canvasId, targetActor, camState) {
+      const cvs = document.getElementById(canvasId);
+      if (!cvs) return;
+      const cCtx = cvs.getContext('2d');
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const viewW = cvs.clientWidth || 600;
+      const viewH = cvs.clientHeight || 450;
+      const targetW = Math.round(viewW * dpr);
+      const targetH = Math.round(viewH * dpr);
+      if (cvs.width !== targetW || cvs.height !== targetH) {
+        cvs.width = targetW;
+        cvs.height = targetH;
+      }
+
+      cCtx.save();
+      cCtx.scale(dpr, dpr);
+      cCtx.imageSmoothingEnabled = true;
+      cCtx.imageSmoothingQuality = 'high';
+      cCtx.clearRect(0, 0, viewW, viewH);
+      const isInsideCafe = targetActor.x < KITCHEN_W;
+
+      if (isInsideCafe) {
+        // ---- VISTA INTERIOR CAFETERÍA 2.5D CON CÁMARA SUAVE (RELACIÓN DE ASPECTO 1:1) ----
+        cCtx.save();
+        const desiredCamX = viewW >= KITCHEN_W
+          ? -(viewW - KITCHEN_W) / 2
+          : Math.max(0, Math.min(KITCHEN_W - viewW, targetActor.x - viewW / 2));
+        const desiredCamY = viewH >= WORLD_H
+          ? -(viewH - WORLD_H) / 2
+          : Math.max(0, Math.min(WORLD_H - viewH, targetActor.y - viewH / 2));
+
+        if (!camState.initialized) {
+          camState.x = desiredCamX;
+          camState.y = desiredCamY;
+          camState.initialized = true;
+        } else {
+          camState.x += (desiredCamX - camState.x) * 0.14;
+          camState.y += (desiredCamY - camState.y) * 0.14;
+        }
+        cCtx.translate(-camState.x, -camState.y);
+
+        // Suelo con textura de madera cálida en comedor y mosaico biselado en cocina
+        const tile = 48;
+        for (let r = 0; r < WORLD_H; r += tile) {
+          for (let c = 0; c < KITCHEN_W; c += tile) {
+            if (c < 430) {
+              cCtx.fillStyle = ((r / tile + c / tile) % 2 === 0) ? '#e8cba0' : '#deb887';
+              cCtx.fillRect(c, r, tile, tile);
+              cCtx.strokeStyle = 'rgba(125, 79, 54, 0.22)'; cCtx.lineWidth = 1; cCtx.strokeRect(c, r, tile, tile);
+            } else {
+              cCtx.fillStyle = ((r / tile + c / tile) % 2 === 0) ? '#fff5f8' : '#ffe3ec';
+              cCtx.fillRect(c, r, tile, tile);
+              cCtx.strokeStyle = 'rgba(235, 154, 180, 0.42)'; cCtx.lineWidth = 1; cCtx.strokeRect(c, r, tile, tile);
+            }
+          }
+        }
+
+        // Franja de pared superior 2.5D con zócalo
+        const wallGrad = cCtx.createLinearGradient(0, 0, 0, 82);
+        wallGrad.addColorStop(0, '#5a3548');
+        wallGrad.addColorStop(1, '#8c536d');
+        cCtx.fillStyle = wallGrad;
+        cCtx.fillRect(0, 0, KITCHEN_W, 82);
+        cCtx.fillStyle = '#d4a373';
+        cCtx.fillRect(0, 74, KITCHEN_W, 10);
+
+        // Alfombra acolchada del comedor
+        cCtx.fillStyle = 'rgba(191, 107, 130, 0.24)';
+        drawRoundedBox(cCtx, 42, 115, 345, 790, 32);
+        cCtx.fill(); cCtx.strokeStyle = '#b56576'; cCtx.lineWidth = 3.5; cCtx.setLineDash([12, 6]); cCtx.stroke(); cCtx.setLineDash([]);
+
+        // Alfombra central de huellita en el pasillo amplio de cocina
+        cCtx.fillStyle = 'rgba(255, 183, 213, 0.34)';
+        cCtx.beginPath(); cCtx.arc(980, 520, 105, 0, Math.PI * 2); cCtx.fill();
+        cCtx.strokeStyle = '#e5989b'; cCtx.lineWidth = 3; cCtx.stroke();
+        cCtx.font = '44px sans-serif'; cCtx.textAlign = 'center'; cCtx.globalAlpha = 0.45; cCtx.fillText('🐾', 980, 535); cCtx.globalAlpha = 1;
+
+        // Cuadros decorativos en la pared
+        const wallPaintings = [
+          { x: 145, y: 14, w: 68, h: 52, icon: '🐱🎨' },
+          { x: 640, y: 14, w: 72, h: 52, icon: '🐈🍓' },
+          { x: 960, y: 14, w: 72, h: 52, icon: '👑😺' },
+          { x: 1260, y: 14, w: 72, h: 52, icon: '☕🐱' }
+        ];
+        wallPaintings.forEach(p => {
+          cCtx.fillStyle = '#8a5a44';
+          drawRoundedBox(cCtx, p.x, p.y, p.w, p.h, 6); cCtx.fill();
+          cCtx.strokeStyle = '#ffd166'; cCtx.lineWidth = 2; cCtx.stroke();
+          cCtx.fillStyle = '#fff0f3';
+          drawRoundedBox(cCtx, p.x + 5, p.y + 5, p.w - 10, p.h - 10, 4); cCtx.fill();
+          cCtx.font = '20px sans-serif'; cCtx.fillText(p.icon, p.x + p.w / 2, p.y + p.h / 2 + 6);
+        });
+
+        // Guirnaldas festivas en la cocina
+        cCtx.strokeStyle = '#8a5a44'; cCtx.lineWidth = 2;
+        cCtx.beginPath(); cCtx.moveTo(480, 22); cCtx.quadraticCurveTo(960, 54, 1440, 22); cCtx.stroke();
+        const buntingColors = ['#ff8fab', '#ffd166', '#cdb4db', '#bde0fe', '#ffafcc'];
+        for (let bx = 500; bx <= 1420; bx += 54) {
+          cCtx.fillStyle = buntingColors[(bx / 54 | 0) % buntingColors.length];
+          cCtx.beginPath(); cCtx.moveTo(bx - 11, 30); cCtx.lineTo(bx + 11, 30); cCtx.lineTo(bx, 48); cCtx.closePath(); cCtx.fill();
+        }
+
+        // Muros divisores 2.5D con borde y relieve
+        cCtx.fillStyle = '#6f4518'; cCtx.fillRect(430, 0, 28, 350); cCtx.fillRect(430, 630, 28, 410);
+        cCtx.fillStyle = '#9c6644'; cCtx.fillRect(430, 0, 28, 336); cCtx.fillRect(430, 630, 28, 396);
+        cCtx.fillStyle = '#b83b66'; cCtx.fillRect(KITCHEN_W - 16, 0, 32, 410); cCtx.fillRect(KITCHEN_W - 16, 610, 32, 430);
+        cCtx.fillStyle = '#e56b8c'; cCtx.fillRect(KITCHEN_W - 16, 0, 32, 396); cCtx.fillRect(KITCHEN_W - 16, 610, 32, 416);
+
+        // Puerta amplia hacia el bosque
+        cCtx.fillStyle = 'rgba(82, 183, 136, 0.28)'; cCtx.fillRect(KITCHEN_W - 44, 410, 44, 200);
+        cCtx.fillStyle = '#2d6a4f'; cCtx.font = 'bold 12px sans-serif'; cCtx.save();
+        cCtx.translate(KITCHEN_W - 22, 510); cCtx.rotate(-Math.PI / 2); cCtx.fillText('🌲 SALIDA AL BOSQUE ➡', 0, 0); cCtx.restore();
+
+        // Mesas 2.5D con sillas acolchadas
+        for (const tbl of cafeTables) {
+          const isNearTbl = Math.hypot(targetActor.x - (tbl.x + tbl.w / 2), targetActor.y - (tbl.y + tbl.h / 2)) < 130;
+          // Sombra
+          cCtx.fillStyle = 'rgba(40, 20, 25, 0.22)';
+          drawRoundedBox(cCtx, tbl.x + 5, tbl.y + 10, tbl.w, tbl.h, 14); cCtx.fill();
+
+          // Sillas laterales
+          cCtx.fillStyle = '#ff8fab';
+          drawRoundedBox(cCtx, tbl.x - 18, tbl.y + 22, 18, 40, 6); cCtx.fill(); cCtx.strokeStyle = '#582f0e'; cCtx.lineWidth = 2; cCtx.stroke();
+          drawRoundedBox(cCtx, tbl.x + tbl.w, tbl.y + 22, 18, 40, 6); cCtx.fill(); cCtx.stroke();
+
+          // Cara frontal 2.5D de la mesa
+          cCtx.fillStyle = '#9c6644';
+          drawRoundedBox(cCtx, tbl.x, tbl.y + 12, tbl.w, tbl.h, 14); cCtx.fill(); cCtx.stroke();
+
+          // Superficie de la mesa
+          cCtx.fillStyle = '#ddb892';
+          drawRoundedBox(cCtx, tbl.x, tbl.y, tbl.w, tbl.h, 14); cCtx.fill();
+          cCtx.strokeStyle = isNearTbl ? '#ffd166' : '#582f0e';
+          cCtx.lineWidth = isNearTbl ? 3.5 : 2.5;
+          cCtx.stroke();
+
+          // Mantelito
+          cCtx.fillStyle = '#fffcf2';
+          drawRoundedBox(cCtx, tbl.x + 14, tbl.y + 6, tbl.w - 28, tbl.h - 12, 8); cCtx.fill();
+          cCtx.strokeStyle = '#f7a8c4'; cCtx.lineWidth = 1.5; cCtx.stroke();
+          cCtx.fillStyle = '#432818'; cCtx.font = 'bold 12.5px sans-serif'; cCtx.textAlign = 'center';
+          cCtx.fillText(tbl.label, tbl.x + tbl.w / 2, tbl.y + tbl.h / 2 + 4);
+
+          if (tbl.hairPile) {
+            cCtx.font = '24px sans-serif';
+            cCtx.fillText('🐈', tbl.x + tbl.w / 2, tbl.y - 12);
+          }
+        }
+
+        // Estaciones de cocina 2.5D con cara frontal, sombra e indicador flotante
+        for (const st of kitchenStations) {
+          const cx = st.x + st.w / 2;
+          const cy = st.y + st.h / 2;
+          const isNear = Math.hypot(targetActor.x - cx, targetActor.y - cy) < 145;
+
+          cCtx.fillStyle = 'rgba(45, 20, 32, 0.22)';
+          drawRoundedBox(cCtx, st.x + 6, st.y + 14, st.w, st.h, 14); cCtx.fill();
+
+          // Base frontal 2.5D
+          cCtx.fillStyle = '#6f4518';
+          drawRoundedBox(cCtx, st.x, st.y + 12, st.w, st.h, 14); cCtx.fill();
+
+          cCtx.strokeStyle = isNear ? '#ffd166' : '#3d2833';
+          cCtx.lineWidth = isNear ? 3.5 : 2.2;
+
+          if (st.id === 'fruitTable') {
+            cCtx.fillStyle = '#e6ccb2'; drawRoundedBox(cCtx, st.x, st.y, st.w, st.h, 14); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#3b232e'; cCtx.font = 'bold 12px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('🧺 Canastas Frutas [E]', cx, st.y + 22);
+
+            const baskets = [
+              { icon: '🍓', bx: st.x + 46, count: state.fruitBaskets.fresa },
+              { icon: '🫐', bx: st.x + 110, count: state.fruitBaskets.mora },
+              { icon: '🍵', bx: st.x + 174, count: state.fruitBaskets.matcha }
+            ];
+            baskets.forEach(b => {
+              cCtx.fillStyle = '#bc8a5f'; cCtx.beginPath(); cCtx.arc(b.bx, st.y + 64, 21, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+              cCtx.font = '16px sans-serif'; cCtx.fillText(b.icon, b.bx, st.y + 66);
+              cCtx.fillStyle = '#fff'; cCtx.font = 'bold 10.5px sans-serif'; cCtx.fillText(`x${b.count}`, b.bx, st.y + 84);
+            });
+          } else if (st.id === 'pantryShelf') {
+            cCtx.fillStyle = '#8d6e63'; drawRoundedBox(cCtx, st.x, st.y, st.w, st.h, 12); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#d7ccc8'; drawRoundedBox(cCtx, st.x + 8, st.y + 25, st.w - 16, st.h - 33, 6); cCtx.fill();
+            cCtx.fillStyle = '#fff'; cCtx.font = 'bold 12px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('🗄️ Alacena Miel/Choco [E]', cx, st.y + 18);
+
+            cCtx.fillStyle = '#ffb703'; drawRoundedBox(cCtx, st.x + 34, st.y + 38, 62, 50, 8); cCtx.fill();
+            cCtx.font = '17px sans-serif'; cCtx.fillText('🍯', st.x + 65, st.y + 63);
+            cCtx.fillStyle = '#2b1922'; cCtx.font = 'bold 11.5px sans-serif'; cCtx.fillText(`x${state.pantryStock.miel}`, st.x + 65, st.y + 82);
+
+            cCtx.fillStyle = '#7f4f24'; drawRoundedBox(cCtx, st.x + 124, st.y + 38, 62, 50, 8); cCtx.fill();
+            cCtx.font = '17px sans-serif'; cCtx.fillText('🍫', st.x + 155, st.y + 63);
+            cCtx.fillStyle = '#fff'; cCtx.font = 'bold 11.5px sans-serif'; cCtx.fillText(`x${state.pantryStock.choco}`, st.x + 155, st.y + 82);
+          } else if (st.id === 'jarsShelf') {
+            cCtx.fillStyle = '#a9def9'; drawRoundedBox(cCtx, st.x, st.y, st.w, st.h, 12); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#2b1922'; cCtx.font = 'bold 12px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('🧪 Alacena de Frascos [E]', cx, st.y + 18);
+            cCtx.fillStyle = '#e0fbfc'; drawRoundedBox(cCtx, cx - 50, st.y + 38, 100, 52, 10); cCtx.fill(); cCtx.stroke();
+            cCtx.font = '19px sans-serif'; cCtx.fillText('🧪', cx, st.y + 61);
+            cCtx.fillStyle = '#1d3557'; cCtx.font = 'bold 12.5px sans-serif'; cCtx.fillText(`Stock: ${state.emptyJarsStock}`, cx, st.y + 80);
+          } else if (st.id === 'chopBoard') {
+            cCtx.fillStyle = '#e6ccb2'; drawRoundedBox(cCtx, st.x, st.y, st.w, st.h, 14); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#2b1922'; cCtx.font = 'bold 12.5px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('1. Mesa de Picar [E]', cx, st.y + 22);
+            cCtx.fillStyle = '#bc8a5f'; drawRoundedBox(cCtx, st.x + 36, st.y + 36, 120, 56, 8); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#e5e5e5'; cCtx.fillRect(st.x + 168, st.y + 40, 11, 34);
+            cCtx.fillStyle = '#3d2833'; cCtx.fillRect(st.x + 170, st.y + 72, 7, 16);
+          } else if (st.id === 'mixer') {
+            cCtx.fillStyle = '#f8edeb'; drawRoundedBox(cCtx, st.x, st.y, st.w, st.h, 14); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#2b1922'; cCtx.font = 'bold 12.5px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('2. Batidora y Bowl [E]', cx, st.y + 22);
+            cCtx.fillStyle = '#ff8fab'; drawRoundedBox(cCtx, st.x + 38, st.y + 38, 54, 54, 10); cCtx.fill();
+            cCtx.fillStyle = '#ced4da'; cCtx.beginPath(); cCtx.arc(st.x + 142, st.y + 65, 25, 0, Math.PI); cCtx.fill(); cCtx.stroke();
+          } else if (st.id === 'oven') {
+            cCtx.fillStyle = '#9e2a2b'; drawRoundedBox(cCtx, st.x, st.y, st.w, st.h, 14); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#6a040f'; cCtx.fillRect(cx - 26, st.y - 14, 52, 18);
+            cCtx.fillStyle = '#fff3b0'; cCtx.font = 'bold 12px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('3. Horno Chimenea [E]', cx, st.y + 20);
+            if (state.ovenWood > 0) {
+              const glow = cCtx.createRadialGradient(cx, st.y + 76, 6, cx, st.y + 76, 52);
+              glow.addColorStop(0, 'rgba(255, 165, 0, 0.75)');
+              glow.addColorStop(1, 'rgba(255, 84, 0, 0)');
+              cCtx.fillStyle = glow;
+              cCtx.beginPath(); cCtx.arc(cx, st.y + 76, 52, 0, Math.PI * 2); cCtx.fill();
+            }
+            cCtx.fillStyle = state.ovenWood > 0 ? '#ff5400' : '#2b2d42';
+            cCtx.beginPath(); cCtx.arc(cx, st.y + 78, 38, Math.PI, 0); cCtx.lineTo(cx + 38, st.y + 95); cCtx.lineTo(cx - 38, st.y + 95); cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+            cCtx.fillStyle = '#ffffff'; cCtx.font = 'bold 12px sans-serif'; cCtx.fillText(`🪵 Leña: ${state.ovenWood} ([1])`, cx, st.y + 112);
+          }
+
+          if (isNear) {
+            cCtx.fillStyle = 'rgba(255, 209, 102, 0.95)';
+            drawRoundedBox(cCtx, cx - 54, st.y - 26, 108, 20, 10); cCtx.fill();
+            cCtx.fillStyle = '#1e1828'; cCtx.font = 'bold 11px sans-serif'; cCtx.textAlign = 'center';
+            cCtx.fillText('Presiona [E]', cx, st.y - 12);
+          }
+        }
+
+        // Clientes gatitos (más grandecitos y súper nítidos en la cafetería)
+        for (const npc of npcCats) {
+          let npcStatus = npc.state === 'waiting_order' ? '❗ ¡Pedido! [R]' : npc.state === 'ordered' ? `💭 ${npc.recipe.name}` : '😋 ¡Delicioso!';
+          cCtx.save();
+          cCtx.translate(npc.x, npc.y);
+          cCtx.scale(1.24, 1.24);
+          drawCatCharacter(cCtx, { x: 0, y: 0, dir: npc.dir || 1, vx: npc.vx, vy: npc.vy }, { furColor: npc.style.fur, furShade: npc.style.furShade, earInner: npc.style.ear, pawTint: '#ffb3c6', scarfColor: npc.style.scarf, stripes: npc.style.stripes, eyeColor: npc.style.eye, name: npc.style.name, status: npcStatus });
+          cCtx.restore();
+        }
+
+        // Jugador 1 (más grandecito y definido en la cocina)
+        cCtx.save();
+        cCtx.translate(p1.x, p1.y);
+        cCtx.scale(1.28, 1.28);
+        drawCatCharacter(cCtx, { x: 0, y: 0, dir: p1.dir, vx: p1.vx, vy: p1.vy }, {
+          furColor: gameConfig.p1Model.fur, furShade: gameConfig.p1Model.furShade, earInner: gameConfig.p1Model.ear, pawTint: gameConfig.p1Model.paw,
+          stripes: gameConfig.p1Model.stripes, eyeColor: gameConfig.p1Model.eye, outfit: gameConfig.p1Model.outfit, gearMode: 'chef',
+          name: `${gameConfig.p1Model.name} (Chef)`,
+          status: p1.holdingDish ? `🍰 ${p1.holdingDish.recipe.name}` : '',
+          actionType: p1.actionType, actionTimer: p1.actionTimer
+        });
+        cCtx.restore();
+
+        // Barra de progreso de cocción sobre el jugador
+        if (p1.actionTimer > 0) {
+          const pct = 1 - p1.actionTimer / (p1.actionMax || 22);
+          cCtx.fillStyle = 'rgba(20, 15, 29, 0.85)';
+          drawRoundedBox(cCtx, p1.x - 32, p1.y - 90, 64, 9, 4.5); cCtx.fill();
+          cCtx.fillStyle = '#52b788';
+          drawRoundedBox(cCtx, p1.x - 30, p1.y - 88, 60 * pct, 5, 2.5); cCtx.fill();
+        }
+
+        if (gameConfig.mode !== 'solo_hybrid' && p2.x < KITCHEN_W) {
+          cCtx.save();
+          cCtx.translate(p2.x, p2.y);
+          cCtx.scale(1.28, 1.28);
+          drawCatCharacter(cCtx, { x: 0, y: 0, dir: p2.dir, vx: p2.vx, vy: p2.vy }, {
+            furColor: gameConfig.p2Model.fur, furShade: gameConfig.p2Model.furShade, earInner: gameConfig.p2Model.ear, pawTint: gameConfig.p2Model.paw,
+            stripes: gameConfig.p2Model.stripes, eyeColor: gameConfig.p2Model.eye, outfit: gameConfig.p2Model.outfit, gearMode: 'explorer',
+            name: `${gameConfig.p2Model.name} (P2)`,
+            status: p2.holdingDish ? `🍰 ${p2.holdingDish.recipe.name}` : ''
+          });
+          cCtx.restore();
+        }
+
+        // Rayos de sol cálidos desde las ventanas del salón
+        const sunGrad = cCtx.createLinearGradient(0, 80, 420, 520);
+        sunGrad.addColorStop(0, 'rgba(255, 243, 176, 0.16)');
+        sunGrad.addColorStop(1, 'rgba(255, 243, 176, 0)');
+        cCtx.fillStyle = sunGrad;
+        cCtx.beginPath();
+        cCtx.moveTo(0, 120); cCtx.lineTo(420, 260); cCtx.lineTo(420, 680); cCtx.lineTo(0, 480);
+        cCtx.closePath(); cCtx.fill();
+
+        // Partículas FX en interior
+        fxParticles.forEach(pt => {
+          cCtx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+          if (pt.emoji) {
+            cCtx.font = '16px sans-serif'; cCtx.fillText(pt.emoji, pt.x, pt.y);
+          } else {
+            cCtx.fillStyle = pt.color;
+            cCtx.beginPath(); cCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); cCtx.fill();
+          }
+        });
+        cCtx.globalAlpha = 1;
+
+        cCtx.restore();
+
+      } else {
+        // ---- VISTA EXTERIOR / BOSQUE 2.5D ----
+        cCtx.save();
+        const desiredCamX = Math.max(KITCHEN_W - 40, Math.min(WORLD_W - viewW, targetActor.x - viewW / 2));
+        const desiredCamY = viewH >= WORLD_H
+          ? -(viewH - WORLD_H) / 2
+          : Math.max(0, Math.min(WORLD_H - viewH, targetActor.y - viewH / 2));
+
+        if (!camState.initialized) {
+          camState.x = desiredCamX;
+          camState.y = desiredCamY;
+          camState.initialized = true;
+        } else {
+          camState.x += (desiredCamX - camState.x) * 0.14;
+          camState.y += (desiredCamY - camState.y) * 0.14;
+        }
+        cCtx.translate(-camState.x, -camState.y);
+
+        const forestGrad = cCtx.createLinearGradient(KITCHEN_W, 0, WORLD_W, 0);
+        forestGrad.addColorStop(0, '#2a4236');
+        forestGrad.addColorStop(0.35, '#1b3129');
+        forestGrad.addColorStop(0.7, '#11201c');
+        forestGrad.addColorStop(1, '#080e0c');
+        cCtx.fillStyle = forestGrad;
+        cCtx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+        // Parches de musgo y textura orgánica del bosque
+        for (let mx = KITCHEN_W + 60; mx < WORLD_W; mx += 190) {
+          for (let my = 90; my < WORLD_H; my += 210) {
+            cCtx.fillStyle = 'rgba(64, 145, 108, 0.12)';
+            cCtx.beginPath();
+            cCtx.ellipse(mx + ((my * 7) % 50), my, 58, 32, 0.2, 0, Math.PI * 2);
+            cCtx.fill();
+          }
+        }
+
+        // Luciérnagas con halo luminoso
+        fireflies.forEach(ff => {
+          ff.phase += 0.03;
+          const alpha = 0.4 + Math.sin(ff.phase) * 0.4;
+          const fy = ff.y + Math.sin(ff.phase * 0.5) * 6;
+          cCtx.globalAlpha = alpha * 0.35;
+          cCtx.fillStyle = ff.color;
+          cCtx.beginPath(); cCtx.arc(ff.x, fy, 10, 0, Math.PI * 2); cCtx.fill();
+          cCtx.globalAlpha = alpha;
+          cCtx.beginPath(); cCtx.arc(ff.x, fy, 2.8, 0, Math.PI * 2); cCtx.fill();
+        });
+        cCtx.globalAlpha = 1;
+
+        // Sendero de piedras texturizadas desde la cafetería hacia el bosque
+        for (let sx = 1480; sx < WORLD_W; sx += 40) {
+          const sy = 510 + Math.sin(sx * 0.025) * 28;
+          cCtx.fillStyle = '#5c4028';
+          cCtx.beginPath(); cCtx.ellipse(sx, sy + 3, 21, 13, 0, 0, Math.PI * 2); cCtx.fill();
+          cCtx.fillStyle = '#9c7248';
+          cCtx.beginPath(); cCtx.ellipse(sx, sy, 20, 12, 0, 0, Math.PI * 2); cCtx.fill();
+        }
+
+        // Ramal del sendero hacia la puerta de la cafetería
+        for (let py = 435; py <= 510; py += 24) {
+          cCtx.fillStyle = '#9c7248';
+          cCtx.beginPath(); cCtx.ellipse(1700, py, 24, 12, 0, 0, Math.PI * 2); cCtx.fill();
+        }
+
+        // Cueva del murciélago 2.5D con profundidad
+        batEnemy.caveX = 3550;
+        batEnemy.caveY = 510;
+        cCtx.fillStyle = '#212529';
+        cCtx.beginPath(); cCtx.ellipse(batEnemy.caveX, batEnemy.caveY + 40, 82, 102, 0, 0, Math.PI * 2); cCtx.fill();
+        cCtx.strokeStyle = '#495057'; cCtx.lineWidth = 4; cCtx.stroke();
+        cCtx.fillStyle = '#0b0710';
+        cCtx.beginPath(); cCtx.ellipse(batEnemy.caveX, batEnemy.caveY + 48, 56, 76, 0, 0, Math.PI * 2); cCtx.fill();
+        cCtx.font = 'bold 13px sans-serif'; cCtx.fillStyle = '#ffd166'; cCtx.textAlign = 'center';
+        cCtx.fillText('🦇 Cueva Murciélago', batEnemy.caveX, batEnemy.caveY - 52);
+
+        // CAFETERÍA COTTAGE REALISTA Y GATUNA EN EL LADO IZQUIERDO DEL BOSQUE
+        const hx = 1495, hy = 155, hw = 410, hh = 275;
+
+        // Resplandor cálido acogedor alrededor de la cafetería
+        const cafeGlow = cCtx.createRadialGradient(hx + hw / 2, hy + hh / 2, 40, hx + hw / 2, hy + hh / 2, 320);
+        cafeGlow.addColorStop(0, 'rgba(255, 214, 102, 0.25)');
+        cafeGlow.addColorStop(1, 'rgba(255, 214, 102, 0)');
+        cCtx.fillStyle = cafeGlow;
+        cCtx.beginPath(); cCtx.arc(hx + hw / 2, hy + hh / 2, 320, 0, Math.PI * 2); cCtx.fill();
+
+        // Sombra proyectada en el suelo
+        cCtx.fillStyle = 'rgba(8, 12, 10, 0.55)';
+        drawRoundedBox(cCtx, hx - 12, hy + hh - 10, hw + 28, 36, 18); cCtx.fill();
+
+        // Chimenea de ladrillos texturizados y humo
+        const chimX = hx + 48, chimY = hy - 118;
+        cCtx.fillStyle = '#8c2f39';
+        cCtx.fillRect(chimX, chimY, 42, 62);
+        cCtx.strokeStyle = '#461220'; cCtx.lineWidth = 2.5; cCtx.strokeRect(chimX, chimY, 42, 62);
+        // Ladrillos de la chimenea
+        cCtx.fillStyle = '#b23a48';
+        cCtx.fillRect(chimX + 4, chimY + 10, 15, 7); cCtx.fillRect(chimX + 22, chimY + 10, 15, 7);
+        cCtx.fillRect(chimX + 12, chimY + 22, 18, 7);
+        cCtx.fillRect(chimX + 4, chimY + 34, 15, 7); cCtx.fillRect(chimX + 22, chimY + 34, 15, 7);
+        cCtx.fillStyle = '#5c1a24'; cCtx.fillRect(chimX - 4, chimY - 6, 50, 8);
+
+        cCtx.fillStyle = 'rgba(255, 248, 250, 0.6)';
+        const smokeShift = Math.sin(Date.now() / 350) * 7;
+        cCtx.beginPath(); cCtx.arc(chimX + 21 + smokeShift, chimY - 18, 11, 0, Math.PI * 2); cCtx.fill();
+        cCtx.beginPath(); cCtx.arc(chimX + 28 - smokeShift, chimY - 38, 15, 0, Math.PI * 2); cCtx.fill();
+        cCtx.beginPath(); cCtx.arc(chimX + 18 + smokeShift * 0.7, chimY - 58, 18, 0, Math.PI * 2); cCtx.fill();
+
+        // Tejado con tejas curvas y degradado realista
+        const roofGrad = cCtx.createLinearGradient(hx, hy - 98, hx, hy + 12);
+        roofGrad.addColorStop(0, '#e56b8c');
+        roofGrad.addColorStop(1, '#9e2a4b');
+        cCtx.fillStyle = roofGrad;
+        cCtx.beginPath(); cCtx.moveTo(hx - 24, hy + 10); cCtx.lineTo(hx + hw / 2, hy - 98); cCtx.lineTo(hx + hw + 24, hy + 10); cCtx.closePath();
+        cCtx.fill(); cCtx.strokeStyle = '#59182c'; cCtx.lineWidth = 4; cCtx.stroke();
+
+        // Textura de tejas onduladas sobre el techo
+        cCtx.strokeStyle = 'rgba(89, 24, 44, 0.45)';
+        cCtx.lineWidth = 1.8;
+        for (let row = 1; row <= 4; row++) {
+          const ry = hy - 92 + row * 21;
+          const span = row * 46;
+          for (let tx = hx + hw / 2 - span; tx < hx + hw / 2 + span - 14; tx += 22) {
+            cCtx.beginPath();
+            cCtx.arc(tx + 11, ry, 11, 0, Math.PI);
+            cCtx.stroke();
+          }
+        }
+
+        // Orejitas de gato gigantes en el tejado con interior rosado y pelaje
+        cCtx.fillStyle = '#c94c70';
+        cCtx.strokeStyle = '#59182c'; cCtx.lineWidth = 3.5;
+        cCtx.beginPath(); cCtx.moveTo(hx + hw / 2 - 68, hy - 56); cCtx.quadraticCurveTo(hx + hw / 2 - 52, hy - 114, hx + hw / 2 - 44, hy - 108); cCtx.lineTo(hx + hw / 2 - 22, hy - 74); cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+        cCtx.beginPath(); cCtx.moveTo(hx + hw / 2 + 68, hy - 56); cCtx.quadraticCurveTo(hx + hw / 2 + 52, hy - 114, hx + hw / 2 + 44, hy - 108); cCtx.lineTo(hx + hw / 2 + 22, hy - 74); cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+
+        cCtx.fillStyle = '#ffb3c6';
+        cCtx.beginPath(); cCtx.moveTo(hx + hw / 2 - 58, hy - 62); cCtx.lineTo(hx + hw / 2 - 45, hy - 96); cCtx.lineTo(hx + hw / 2 - 28, hy - 74); cCtx.closePath(); cCtx.fill();
+        cCtx.beginPath(); cCtx.moveTo(hx + hw / 2 + 58, hy - 62); cCtx.lineTo(hx + hw / 2 + 45, hy - 96); cCtx.lineTo(hx + hw / 2 + 28, hy - 74); cCtx.closePath(); cCtx.fill();
+
+        // Ventana circular en el ático con silueta de gatito
+        cCtx.fillStyle = '#ffe169';
+        cCtx.beginPath(); cCtx.arc(hx + hw / 2, hy - 44, 18, 0, Math.PI * 2); cCtx.fill();
+        cCtx.strokeStyle = '#59182c'; cCtx.lineWidth = 3; cCtx.stroke();
+        cCtx.fillStyle = '#3d244d';
+        cCtx.beginPath(); cCtx.arc(hx + hw / 2, hy - 39, 9, 0, Math.PI * 2); cCtx.fill();
+        cCtx.beginPath(); cCtx.moveTo(hx + hw / 2 - 8, hy - 44); cCtx.lineTo(hx + hw / 2 - 5, hy - 53); cCtx.lineTo(hx + hw / 2 - 1, hy - 46); cCtx.fill();
+        cCtx.beginPath(); cCtx.moveTo(hx + hw / 2 + 8, hy - 44); cCtx.lineTo(hx + hw / 2 + 5, hy - 53); cCtx.lineTo(hx + hw / 2 + 1, hy - 46); cCtx.fill();
+
+        // Fachada principal con textura de tablones de madera crema y zócalo de piedra
+        const wallCrema = cCtx.createLinearGradient(hx, hy, hx, hy + hh);
+        wallCrema.addColorStop(0, '#fff8eb');
+        wallCrema.addColorStop(1, '#f3dfc1');
+        cCtx.fillStyle = wallCrema;
+        drawRoundedBox(cCtx, hx, hy, hw, hh, 16); cCtx.fill();
+        cCtx.strokeStyle = '#9c6644'; cCtx.lineWidth = 4; cCtx.stroke();
+
+        // Textura horizontal de tablones de madera en la fachada
+        cCtx.strokeStyle = 'rgba(156, 102, 68, 0.25)';
+        cCtx.lineWidth = 1.5;
+        for (let py = hy + 18; py < hy + hh - 62; py += 18) {
+          cCtx.beginPath(); cCtx.moveTo(hx + 4, py); cCtx.lineTo(hx + hw - 4, py); cCtx.stroke();
+        }
+
+        // Zócalo inferior de piedras rústicas
+        cCtx.fillStyle = '#cba882';
+        cCtx.fillRect(hx + 3, hy + hh - 62, hw - 6, 59);
+        cCtx.strokeStyle = '#7f5539'; cCtx.lineWidth = 2;
+        for (let sx = hx + 10; sx < hx + hw - 26; sx += 34) {
+          drawRoundedBox(cCtx, sx, hy + hh - 56, 28, 22, 6); cCtx.stroke();
+          drawRoundedBox(cCtx, sx + 10, hy + hh - 30, 28, 22, 6); cCtx.stroke();
+        }
+
+        // Toldo rayado ondulado estilo bistró francés
+        const stripesCount = 9;
+        const stripeW = (hw - 24) / stripesCount;
+        for (let s = 0; s < stripesCount; s++) {
+          const sx = hx + 12 + s * stripeW;
+          cCtx.fillStyle = s % 2 === 0 ? '#ff75a0' : '#fff5f8';
+          cCtx.fillRect(sx, hy + 48, stripeW, 30);
+          cCtx.beginPath();
+          cCtx.arc(sx + stripeW / 2, hy + 78, stripeW / 2, 0, Math.PI);
+          cCtx.fill();
+          cCtx.strokeStyle = '#b83b66'; cCtx.lineWidth = 1.4;
+          cCtx.strokeRect(sx, hy + 48, stripeW, 30);
+        }
+
+        // Ventanales iluminados con marcos de madera, cortinitas y jardineras floridas
+        [hx + 34, hx + hw - 122].forEach(wx => {
+          // Resplandor cálido de la ventana
+          cCtx.fillStyle = '#ffe169';
+          drawRoundedBox(cCtx, wx, hy + 108, 88, 82, 12); cCtx.fill();
+          // Cortinitas rosas laterales
+          cCtx.fillStyle = '#ff8fab';
+          cCtx.beginPath(); cCtx.moveTo(wx + 2, hy + 110); cCtx.quadraticCurveTo(wx + 24, hy + 145, wx + 4, hy + 186); cCtx.closePath(); cCtx.fill();
+          cCtx.beginPath(); cCtx.moveTo(wx + 86, hy + 110); cCtx.quadraticCurveTo(wx + 64, hy + 145, wx + 84, hy + 186); cCtx.closePath(); cCtx.fill();
+          // Cruz de madera del marco
+          cCtx.strokeStyle = '#6f4518'; cCtx.lineWidth = 3.5;
+          drawRoundedBox(cCtx, wx, hy + 108, 88, 82, 12); cCtx.stroke();
+          cCtx.beginPath();
+          cCtx.moveTo(wx + 44, hy + 108); cCtx.lineTo(wx + 44, hy + 190);
+          cCtx.moveTo(wx, hy + 149); cCtx.lineTo(wx + 88, hy + 149);
+          cCtx.stroke();
+          // Jardinera con flores
+          cCtx.fillStyle = '#8a5a44'; cCtx.fillRect(wx - 5, hy + 186, 98, 16);
+          cCtx.strokeRect(wx - 5, hy + 186, 98, 16);
+          cCtx.font = '14px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('🌷🌼🌸🌺', wx + 44, hy + 185);
+        });
+
+        // Puerta central con forma de cabecita de gato y ventanita de vidrio
+        const doorX = hx + hw / 2 - 38, doorY = hy + 102;
+        cCtx.fillStyle = '#7f4f24';
+        drawRoundedBox(cCtx, doorX, doorY, 76, 148, [22, 22, 4, 4]); cCtx.fill();
+        cCtx.strokeStyle = '#3d210e'; cCtx.lineWidth = 4; cCtx.stroke();
+        // Ventanita en la puerta con silueta de huellita
+        cCtx.fillStyle = '#ffe5ec';
+        drawRoundedBox(cCtx, doorX + 16, doorY + 18, 44, 46, 12); cCtx.fill();
+        cCtx.strokeStyle = '#582f0e'; cCtx.lineWidth = 2.5; cCtx.stroke();
+        cCtx.font = '18px sans-serif'; cCtx.fillText('🐾', doorX + 38, doorY + 47);
+        // Manija dorada
+        cCtx.fillStyle = '#ffbe0b'; cCtx.beginPath(); cCtx.arc(doorX + 14, doorY + 82, 6, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+
+        // Tapete de bienvenida con huellita y escalón de piedra frente a la puerta
+        cCtx.fillStyle = '#b08968';
+        drawRoundedBox(cCtx, doorX - 10, hy + hh - 22, 96, 24, 8); cCtx.fill(); cCtx.stroke();
+        cCtx.fillStyle = '#ff75a0';
+        drawRoundedBox(cCtx, doorX + 2, hy + hh - 18, 72, 16, 6); cCtx.fill();
+        cCtx.fillStyle = '#fff'; cCtx.font = 'bold 9.5px sans-serif'; cCtx.fillText('MIAU ♥', doorX + 38, hy + hh - 7);
+
+        // Farolitos colgantes cálidos a los lados de la puerta
+        [doorX - 18, doorX + 94].forEach(lx => {
+          cCtx.strokeStyle = '#2b2d42'; cCtx.lineWidth = 2.5;
+          cCtx.beginPath(); cCtx.moveTo(lx, hy + 115); cCtx.lineTo(lx, hy + 128); cCtx.stroke();
+          cCtx.fillStyle = '#ffd166';
+          drawRoundedBox(cCtx, lx - 6, hy + 128, 12, 16, 4); cCtx.fill(); cCtx.stroke();
+        });
+
+        // Letrero colgante con orejitas de gato
+        const signX = hx + hw / 2, signY = hy + 24;
+        cCtx.fillStyle = '#3d244d';
+        drawRoundedBox(cCtx, signX - 132, hy + 4, 264, 40, 14); cCtx.fill();
+        cCtx.strokeStyle = '#ffd166'; cCtx.lineWidth = 3; cCtx.stroke();
+        cCtx.fillStyle = '#ffb7d5'; cCtx.font = 'bold 14.5px sans-serif'; cCtx.textAlign = 'center';
+        cCtx.fillText('🐱 CAFETERÍA ISLA MICHI 🍰', signX, signY + 5);
+
+        for (const ob of forestObstacles) {
+          if (ob.type === 'branch') {
+            cCtx.fillStyle = '#3e2723'; drawRoundedBox(cCtx, ob.x, ob.y, ob.w, ob.h, 10); cCtx.fill(); cCtx.stroke();
+          } else if (ob.type === 'bush') {
+            cCtx.fillStyle = '#1b4332'; cCtx.beginPath(); cCtx.arc(ob.x + ob.w / 2, ob.y + ob.h / 2, ob.w / 2, 0, Math.PI * 2); cCtx.fill(); cCtx.stroke();
+          }
+        }
+
+        for (const tr of choppableTrees) {
+          if (tr.hp <= 0) {
+            cCtx.fillStyle = '#6f4e37'; cCtx.beginPath(); cCtx.ellipse(tr.x, tr.y + 12, 16, 9, 0, 0, Math.PI * 2); cCtx.fill();
+            continue;
+          }
+          cCtx.fillStyle = '#582f0e'; cCtx.fillRect(tr.x - 10, tr.y - 6, 20, 28);
+          cCtx.fillStyle = '#2d6a4f'; cCtx.beginPath(); cCtx.arc(tr.x, tr.y - 16, 28, 0, Math.PI * 2); cCtx.fill();
+          cCtx.fillStyle = '#40916c'; cCtx.beginPath(); cCtx.arc(tr.x - 6, tr.y - 22, 16, 0, Math.PI * 2); cCtx.fill();
+          cCtx.fillStyle = '#ffd166'; cCtx.font = 'bold 11px sans-serif'; cCtx.textAlign = 'center';
+          cCtx.fillText(`🪵 ${tr.hp}/${tr.maxHp}`, tr.x, tr.y + 34);
+        }
+
+        for (const tr of forestTraps) {
+          cCtx.font = '20px sans-serif'; cCtx.textAlign = 'center';
+          cCtx.fillText(tr.kind === 'thorns' ? '🌵' : '🍄', tr.x, tr.y + 7);
+        }
+
+        for (const n of forestNodes) {
+          if (!n.active) continue;
+          const info = INGREDIENT_INFO[n.type];
+          cCtx.fillStyle = info.color; cCtx.beginPath(); cCtx.arc(n.x, n.y, 17, 0, Math.PI * 2); cCtx.fill();
+          cCtx.strokeStyle = '#ffffff'; cCtx.lineWidth = 2; cCtx.stroke();
+          cCtx.font = '16px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText(info.label.split(' ')[0], n.x, n.y + 5);
+        }
+
+        for (const d of droppedItems) {
+          const info = INGREDIENT_INFO[d.type];
+          cCtx.fillStyle = info.color; cCtx.beginPath(); cCtx.arc(d.x, d.y, 14, 0, Math.PI * 2); cCtx.fill();
+          cCtx.font = '15px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText(info.label.split(' ')[0], d.x, d.y + 5);
+        }
+
+        // RENDERIZAR MURCIÉLAGO PACÍFICO
+        cCtx.save();
+        cCtx.translate(batEnemy.x, batEnemy.y);
+        cCtx.fillStyle = '#212529';
+        cCtx.beginPath(); cCtx.ellipse(0, 0, 18, 14, 0, 0, Math.PI * 2); cCtx.fill();
+        cCtx.strokeStyle = '#ffd166'; cCtx.lineWidth = 1.5; cCtx.stroke();
+        const wingFlap = Math.sin(Date.now() / 80) * 16;
+        cCtx.fillStyle = '#343a40';
+        cCtx.beginPath(); cCtx.moveTo(-10, 0); cCtx.lineTo(-32, -18 + wingFlap); cCtx.lineTo(-20, 10); cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+        cCtx.beginPath(); cCtx.moveTo(10, 0); cCtx.lineTo(32, -18 + wingFlap); cCtx.lineTo(20, 10); cCtx.closePath(); cCtx.fill(); cCtx.stroke();
+        cCtx.fillStyle = '#ffb703';
+        cCtx.beginPath(); cCtx.arc(-6, -3, 3, 0, Math.PI * 2); cCtx.arc(6, -3, 3, 0, Math.PI * 2); cCtx.fill();
+        cCtx.font = 'bold 11px sans-serif'; cCtx.textAlign = 'center'; cCtx.fillStyle = '#d8b4fe';
+        cCtx.fillText('🦇 Murciélago Amistoso', 0, -26);
+        cCtx.restore();
+
+        // Renderizar a ambos jugadores si salen al bosque en modo multijugador / online / IA
+        const exteriorPlayers = gameConfig.mode === 'solo_hybrid'
+          ? [{ actor: p1, model: gameConfig.p1Model, roleTag: '(Explorador)' }]
+          : [
+              { actor: p1, model: gameConfig.p1Model, roleTag: '(J1)' },
+              { actor: p2, model: gameConfig.p2Model, roleTag: '(J2)' }
+            ];
+
+        exteriorPlayers.forEach(({ actor, model, roleTag }) => {
+          if (actor.x >= KITCHEN_W - 30) {
+            drawCatCharacter(cCtx, actor, {
+              furColor: model.fur, furShade: model.furShade, earInner: model.ear, pawTint: model.paw,
+              stripes: model.stripes, eyeColor: model.eye, outfit: model.outfit, gearMode: 'explorer',
+              name: `${model.name} ${roleTag}`,
+              status: `🎒 ${state.p2Bag.length}/${MAX_BAG_CAPACITY}`,
+              chopAnim: actor.chopAnim
+            });
+          }
+        });
+
+        for (const ct of canopyTrees) {
+          cCtx.fillStyle = `hsla(${ct.hue}, 44%, ${ct.light}%, 0.95)`;
+          cCtx.beginPath(); cCtx.arc(ct.x, ct.y, ct.r, 0, Math.PI * 2); cCtx.fill();
+        }
+
+        // Partículas FX
+        fxParticles.forEach(pt => {
+          cCtx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+          if (pt.emoji) {
+            cCtx.font = '16px sans-serif'; cCtx.fillText(pt.emoji, pt.x, pt.y);
+          } else {
+            cCtx.fillStyle = pt.color;
+            cCtx.beginPath(); cCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); cCtx.fill();
+          }
+        });
+        cCtx.globalAlpha = 1;
+
+        cCtx.restore();
+      }
+      cCtx.restore();
+    }
+
+    function renderAll() {
+      if (gameConfig.isRemoteConnected) {
+        // En modo Online cada jugador ve su propia pantalla completa y ve al amigo moverse en vivo
+        document.getElementById('paneP1').classList.remove('hidden');
+        document.getElementById('paneP2').classList.add('hidden');
+        const myActor = gameConfig.isHost ? p1 : p2;
+        const myModel = gameConfig.isHost ? gameConfig.p1Model : gameConfig.p2Model;
+        const friendModel = gameConfig.isHost ? gameConfig.p2Model : gameConfig.p1Model;
+        const placeLabel = myActor.x < KITCHEN_W ? '👩‍🍳 Cafetería' : '🌲 Bosque';
+        document.getElementById('labelP1').textContent = `🌐 ${placeLabel} | Tú: ${myModel.name} • Amigo: ${friendModel.name}`;
+        renderViewport('canvasP1', myActor, camP1);
+      } else if (gameConfig.mode === 'duo_local') {
+        document.getElementById('paneP1').classList.remove('hidden');
+        document.getElementById('paneP2').classList.remove('hidden');
+        document.getElementById('labelP1').textContent = `🐱 Jugador 1 (${gameConfig.p1Model.name})`;
+        document.getElementById('labelP2').textContent = `🐱 Jugador 2 (${gameConfig.p2Model.name})`;
+        renderViewport('canvasP1', p1, camP1);
+        renderViewport('canvasP2', p2, camP2);
+      } else if (gameConfig.mode === 'solo_ai') {
+        document.getElementById('paneP1').classList.remove('hidden');
+        document.getElementById('paneP2').classList.remove('hidden');
+        const userActor = gameConfig.soloAiPlayerRole === 'gatherer' ? p2 : p1;
+        const aiActor = gameConfig.soloAiPlayerRole === 'gatherer' ? p1 : p2;
+        document.getElementById('labelP1').textContent = `🎮 Tu Vista (${gameConfig.soloAiPlayerRole.toUpperCase()})`;
+        document.getElementById('labelP2').textContent = `🤖 Compañero IA`;
+        renderViewport('canvasP1', userActor, camP1);
+        renderViewport('canvasP2', aiActor, camP2);
+      } else {
+        document.getElementById('paneP1').classList.remove('hidden');
+        document.getElementById('paneP2').classList.add('hidden');
+        document.getElementById('labelP1').textContent = p1.x < KITCHEN_W ? '👩‍🍳 Cafetería Vintage Gatuna' : '🌲 Bosque Extendido';
+        renderViewport('canvasP1', p1, camP1);
+      }
+    }
+
+    // ================= BUCLE PRINCIPAL =================
+    function update() {
+      if (!state.started) return;
+
+      for (let i = fxParticles.length - 1; i >= 0; i--) {
+        const pt = fxParticles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life--;
+        if (pt.life <= 0) fxParticles.splice(i, 1);
+      }
+
+      if (gameConfig.mode === 'solo_hybrid') {
+        if (p1.actionTimer > 0) p1.actionTimer--;
+        if (p1.chopAnim > 0) p1.chopAnim--;
+        p1.vx = 0; p1.vy = 0;
+        const spd1 = getActorSpeed(p1);
+
+        if (p1.actionTimer === 0) {
+          if (keysDown['KeyW'] || keysDown['ArrowUp']) p1.vy = -spd1;
+          if (keysDown['KeyS'] || keysDown['ArrowDown']) p1.vy = spd1;
+          if (keysDown['KeyA'] || keysDown['ArrowLeft']) { p1.vx = -spd1; p1.dir = -1; }
+          if (keysDown['KeyD'] || keysDown['ArrowRight']) { p1.vx = spd1; p1.dir = 1; }
+          p1.x += p1.vx;
+          p1.y += p1.vy;
+        }
+        p1.x = Math.max(25, Math.min(WORLD_W - 25, p1.x));
+        p1.y = Math.max(35, Math.min(WORLD_H - 35, p1.y));
+        resolveCollisions(p1, [...kitchenSolids, ...forestObstacles]);
+
+      } else if (gameConfig.mode === 'solo_ai') {
+        if (p1.actionTimer > 0) p1.actionTimer--;
+        if (p2.chopAnim > 0) p2.chopAnim--;
+
+        if (gameConfig.soloAiPlayerRole === 'chef') {
+          p1.vx = 0; p1.vy = 0;
+          const spd1 = getActorSpeed(p1);
+          if (p1.actionTimer === 0) {
+            if (keysDown['KeyW'] || keysDown['ArrowUp']) p1.vy = -spd1;
+            if (keysDown['KeyS'] || keysDown['ArrowDown']) p1.vy = spd1;
+            if (keysDown['KeyA'] || keysDown['ArrowLeft']) { p1.vx = -spd1; p1.dir = -1; }
+            if (keysDown['KeyD'] || keysDown['ArrowRight']) { p1.vx = spd1; p1.dir = 1; }
+            p1.x += p1.vx;
+            p1.y += p1.vy;
+          }
+          updateAiGatherer(p2);
+        } else {
+          p2.vx = 0; p2.vy = 0;
+          const spd2 = getActorSpeed(p2);
+          if (keysDown['KeyW'] || keysDown['ArrowUp']) p2.vy = -spd2;
+          if (keysDown['KeyS'] || keysDown['ArrowDown']) p2.vy = spd2;
+          if (keysDown['KeyA'] || keysDown['ArrowLeft']) { p2.vx = -spd2; p2.dir = -1; }
+          if (keysDown['KeyD'] || keysDown['ArrowRight']) { p2.vx = spd2; p2.dir = 1; }
+          p2.x += p2.vx;
+          p2.y += p2.vy;
+          updateAiChef(p1);
+        }
+
+        p1.x = Math.max(25, Math.min(WORLD_W - 25, p1.x)); p1.y = Math.max(35, Math.min(WORLD_H - 35, p1.y));
+        p2.x = Math.max(25, Math.min(WORLD_W - 25, p2.x)); p2.y = Math.max(35, Math.min(WORLD_H - 35, p2.y));
+        resolveCollisions(p1, [...kitchenSolids, ...forestObstacles]);
+        resolveCollisions(p2, [...kitchenSolids, ...forestObstacles]);
+
+      } else {
+        if (gameConfig.isRemoteConnected) {
+          if (gameConfig.isHost) {
+            if (p1.actionTimer > 0) p1.actionTimer--;
+            if (p1.chopAnim > 0) p1.chopAnim--;
+            p1.vx = 0; p1.vy = 0;
+            const spd1 = getActorSpeed(p1);
+            if (p1.actionTimer === 0) {
+              if (keysDown['KeyW'] || keysDown['ArrowUp']) p1.vy = -spd1;
+              if (keysDown['KeyS'] || keysDown['ArrowDown']) p1.vy = spd1;
+              if (keysDown['KeyA'] || keysDown['ArrowLeft']) { p1.vx = -spd1; p1.dir = -1; }
+              if (keysDown['KeyD'] || keysDown['ArrowRight']) { p1.vx = spd1; p1.dir = 1; }
+              p1.x += p1.vx;
+              p1.y += p1.vy;
+            }
+            p1.x = Math.max(25, Math.min(WORLD_W - 25, p1.x)); p1.y = Math.max(35, Math.min(WORLD_H - 35, p1.y));
+            resolveCollisions(p1, [...kitchenSolids, ...forestObstacles]);
+          } else {
+            if (p2.actionTimer > 0) p2.actionTimer--;
+            if (p2.chopAnim > 0) p2.chopAnim--;
+            p2.vx = 0; p2.vy = 0;
+            const spd2 = getActorSpeed(p2);
+            if (p2.actionTimer === 0) {
+              if (keysDown['KeyW'] || keysDown['ArrowUp']) p2.vy = -spd2;
+              if (keysDown['KeyS'] || keysDown['ArrowDown']) p2.vy = spd2;
+              if (keysDown['KeyA'] || keysDown['ArrowLeft']) { p2.vx = -spd2; p2.dir = -1; }
+              if (keysDown['KeyD'] || keysDown['ArrowRight']) { p2.vx = spd2; p2.dir = 1; }
+              p2.x += p2.vx;
+              p2.y += p2.vy;
+            }
+            p2.x = Math.max(25, Math.min(WORLD_W - 25, p2.x)); p2.y = Math.max(35, Math.min(WORLD_H - 35, p2.y));
+            resolveCollisions(p2, [...kitchenSolids, ...forestObstacles]);
+          }
+
+          // Sincronización continua de posición y mundo en tiempo real (~30 veces/seg)
+          const now = Date.now();
+          if (now - gameConfig.lastNetSync > 32) {
+            gameConfig.lastNetSync = now;
+            sendRealtimePlayerSync();
+            if (gameConfig.isHost) broadcastGameState();
+          }
+        } else {
+          p1.vx = 0; p1.vy = 0;
+          const spd1 = getActorSpeed(p1);
+          if (keysDown['KeyW']) p1.vy = -spd1;
+          if (keysDown['KeyS']) p1.vy = spd1;
+          if (keysDown['KeyA']) { p1.vx = -spd1; p1.dir = -1; }
+          if (keysDown['KeyD']) { p1.vx = spd1; p1.dir = 1; }
+          p1.x += p1.vx; p1.y += p1.vy;
+
+          p2.vx = 0; p2.vy = 0;
+          const spd2 = getActorSpeed(p2);
+          if (keysDown['ArrowUp']) p2.vy = -spd2;
+          if (keysDown['ArrowDown']) p2.vy = spd2;
+          if (keysDown['ArrowLeft']) { p2.vx = -spd2; p2.dir = -1; }
+          if (keysDown['ArrowRight']) { p2.vx = spd2; p2.dir = 1; }
+          p2.x += p2.vx; p2.y += p2.vy;
+
+          p1.x = Math.max(25, Math.min(WORLD_W - 25, p1.x)); p1.y = Math.max(35, Math.min(WORLD_H - 35, p1.y));
+          p2.x = Math.max(25, Math.min(WORLD_W - 25, p2.x)); p2.y = Math.max(35, Math.min(WORLD_H - 35, p2.y));
+          resolveCollisions(p1, [...kitchenSolids, ...forestObstacles]);
+          resolveCollisions(p2, [...kitchenSolids, ...forestObstacles]);
+        }
+      }
+
+      // MURCIÉLAGO PACÍFICO: Solo revolotea suavemente junto a su cueva sin hacerte daño
+      batEnemy.state = 'cave';
+      batEnemy.x = batEnemy.caveX - 95 + Math.cos(Date.now() / 600) * 35;
+      batEnemy.y = batEnemy.caveY + Math.sin(Date.now() / 420) * 45;
+
+      for (const n of forestNodes) {
+        if (!n.active) { n.respawn--; if (n.respawn <= 0) n.active = true; }
+      }
+      for (const tr of choppableTrees) {
+        if (tr.hp <= 0) { tr.respawn--; if (tr.respawn <= 0) tr.hp = tr.maxHp; }
+      }
+
+      if (!gameConfig.isRemoteConnected || gameConfig.isHost) {
+        npcSpawnTimer--;
+        if (npcSpawnTimer <= 0) { spawnNpcCustomer(); npcSpawnTimer = 240; }
+      }
+
+      for (let i = npcCats.length - 1; i >= 0; i--) {
+        const npc = npcCats[i];
+        if (npc.state === 'entering') {
+          const dx = npc.targetX - npc.x; const dy = npc.targetY - npc.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 5) {
+            npc.state = 'waiting_order';
+            npc.vx = 0; npc.vy = 0;
+          } else {
+            npc.vx = (dx / dist) * 4.4;
+            npc.vy = (dy / dist) * 4.4;
+            npc.x += npc.vx; npc.y += npc.vy;
+          }
+        } else if (npc.state === 'eating') {
+          npc.eatTimer--;
+          if (npc.eatTimer <= 0) {
+            const tbl = cafeTables.find(t => t.id === npc.tableId);
+            if (tbl) tbl.hairPile = true;
+            npc.state = 'leaving';
+          }
+        } else if (npc.state === 'leaving') {
+          npc.vy = 4.6;
+          npc.y += npc.vy;
+          if (npc.y > WORLD_H + 40) npcCats.splice(i, 1);
+        }
+      }
+    }
+
+    function loop() {
+      if (!state.started && !document.getElementById('screenTitle').classList.contains('hidden')) {
+        renderTitleInteractiveBg();
+      }
+      update();
+      renderAll();
+      requestAnimationFrame(loop);
+    }
+
+    // ================= FONDO INTERACTIVO PANTALLA DE INICIO =================
+    const titleScene = {
+      pointerX: -999,
+      pointerY: -999,
+      poseBoostTimer: 0,
+      hearts: Array.from({ length: 22 }, (_, i) => ({
+        x: Math.random() * 1400,
+        y: Math.random() * 900,
+        r: 8 + Math.random() * 14,
+        speed: 0.45 + Math.random() * 0.85,
+        phase: Math.random() * Math.PI * 2,
+        icon: ['💖', '✨', '🌸', '🍓', '🧁', '🐾', '💛'][i % 7]
+      })),
+      clickBursts: []
+    };
+
+    function initTitleBackgroundInteraction() {
+      const cvs = document.getElementById('titleBgCanvas');
+      if (!cvs) return;
+      const onPointerMove = (cx, cy) => {
+        const rect = cvs.getBoundingClientRect();
+        titleScene.pointerX = cx - rect.left;
+        titleScene.pointerY = cy - rect.top;
+      };
+      const triggerCuteBurst = (cx, cy) => {
+        const rect = cvs.getBoundingClientRect();
+        const x = cx - rect.left;
+        const y = cy - rect.top;
+        titleScene.poseBoostTimer = 110;
+        const icons = ['💖', '✨', '🌸', '🐾', '🍓', '💕'];
+        for (let i = 0; i < 14; i++) {
+          const ang = (Math.PI * 2 * i) / 14 + Math.random() * 0.4;
+          const spd = 2 + Math.random() * 3.8;
+          titleScene.clickBursts.push({
+            x, y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 1.5,
+            life: 48,
+            icon: icons[i % icons.length]
+          });
+        }
+      };
+
+      cvs.addEventListener('mousemove', e => onPointerMove(e.clientX, e.clientY));
+      cvs.addEventListener('mousedown', e => triggerCuteBurst(e.clientX, e.clientY));
+      cvs.addEventListener('touchstart', e => {
+        if (e.touches[0]) {
+          onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+          triggerCuteBurst(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+    }
+
+    function renderTitleInteractiveBg() {
+      const cvs = document.getElementById('titleBgCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = cvs.clientWidth || window.innerWidth;
+      const h = cvs.clientHeight || window.innerHeight;
+      if (cvs.width !== Math.round(w * dpr) || cvs.height !== Math.round(h * dpr)) {
+        cvs.width = Math.round(w * dpr);
+        cvs.height = Math.round(h * dpr);
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      const t = Date.now() / 1000;
+      if (titleScene.poseBoostTimer > 0) titleScene.poseBoostTimer--;
+
+      // Cielo pastel súper colorido y luminoso
+      const skyGrad = ctx.createLinearGradient(0, 0, w, h);
+      skyGrad.addColorStop(0, '#ffafcc');
+      skyGrad.addColorStop(0.32, '#cdb4db');
+      skyGrad.addColorStop(0.68, '#a2d2ff');
+      skyGrad.addColorStop(1, '#ffd166');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Arcoíris pastel suave en el fondo
+      const rainbowColors = ['rgba(255,89,143,0.32)', 'rgba(255,209,102,0.32)', 'rgba(168,255,120,0.32)', 'rgba(114,239,221,0.32)', 'rgba(189,178,255,0.32)'];
+      rainbowColors.forEach((col, idx) => {
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 22;
+        ctx.beginPath();
+        ctx.arc(w * 0.5, h * 0.85, Math.min(w, h) * (0.58 - idx * 0.035), Math.PI, 0);
+        ctx.stroke();
+      });
+
+      // Pradera colorida en la parte inferior
+      const grassGrad = ctx.createLinearGradient(0, h * 0.72, 0, h);
+      grassGrad.addColorStop(0, '#80ed99');
+      grassGrad.addColorStop(1, '#38b000');
+      ctx.fillStyle = grassGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.76);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.68, w, h * 0.76);
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Florecitas coloridas en el prado
+      const flowerIcons = ['🌸', '🌼', '🌷', '🌺', '🍀'];
+      for (let fx = 30; fx < w; fx += 75) {
+        const fy = h * 0.80 + Math.sin(fx * 0.04 + t) * 8;
+        ctx.font = '22px sans-serif';
+        ctx.fillText(flowerIcons[(fx / 75 | 0) % flowerIcons.length], fx, fy);
+      }
+
+      // Elementos flotantes interactivos (reaccionan al cursor)
+      titleScene.hearts.forEach(item => {
+        item.y -= item.speed;
+        if (item.y < -30) { item.y = h + 30; item.x = Math.random() * w; }
+        const floatX = item.x + Math.sin(t * 1.8 + item.phase) * 18;
+        const distMouse = Math.hypot(floatX - titleScene.pointerX, item.y - titleScene.pointerY);
+        const scale = distMouse < 90 ? 1.45 : 1;
+        ctx.save();
+        ctx.translate(floatX, item.y);
+        ctx.scale(scale, scale);
+        ctx.font = `${Math.round(item.r + 10)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(item.icon, 0, 0);
+        ctx.restore();
+      });
+
+      // === PAREJA PROTAGONISTA A LA IZQUIERDA: MOCHI Y THOM AGARRADOS DE LAS MANOS ===
+      const pairBaseX = Math.max(125, w * 0.16);
+      const pairBaseY = h * 0.76;
+      const distPair = Math.hypot(pairBaseX - titleScene.pointerX, pairBaseY - titleScene.pointerY);
+      const isExcited = distPair < 150 || titleScene.poseBoostTimer > 0;
+      const bounceMochi = Math.abs(Math.sin(t * (isExcited ? 6 : 3))) * (isExcited ? 12 : 5);
+      const bounceThom = Math.abs(Math.cos(t * (isExcited ? 6 : 3))) * (isExcited ? 10 : 4);
+
+      const mochiModel = CAT_MODELS[0];
+      const thomModel = CAT_MODELS[1];
+
+      // Mochi haciendo pose tierna
+      ctx.save();
+      ctx.translate(pairBaseX - 36, pairBaseY - bounceMochi);
+      ctx.scale(1.65, 1.65);
+      drawCatCharacter(ctx, { x: 0, y: 0, dir: 1 }, {
+        furColor: mochiModel.fur, furShade: mochiModel.furShade, earInner: mochiModel.ear, pawTint: mochiModel.paw,
+        stripes: mochiModel.stripes, eyeColor: mochiModel.eye, outfit: mochiModel.outfit, gearMode: 'chef',
+        expression: isExcited ? 'happy' : 'wink',
+        name: 'Mochi 💖'
+      });
+      ctx.restore();
+
+      // Thom junto a Mochi con carita tierna sonrojada
+      ctx.save();
+      ctx.translate(pairBaseX + 42, pairBaseY - bounceThom);
+      ctx.scale(1.65, 1.65);
+      drawCatCharacter(ctx, { x: 0, y: 0, dir: -1 }, {
+        furColor: thomModel.fur, furShade: thomModel.furShade, earInner: thomModel.ear, pawTint: thomModel.paw,
+        stripes: thomModel.stripes, eyeColor: thomModel.eye, outfit: thomModel.outfit, gearMode: 'explorer',
+        expression: isExcited ? 'happy' : 'normal',
+        name: 'Thom 🧢'
+      });
+      ctx.restore();
+
+      // Manitas entrelazadas entre Mochi y Thom + corazoncito flotante arriba
+      const handX = pairBaseX + 3;
+      const handY = pairBaseY + 18 - (bounceMochi + bounceThom) * 0.45;
+      ctx.fillStyle = '#ffc8dd';
+      ctx.strokeStyle = '#3d2833';
+      ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.arc(handX - 5, handY, 8.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#a47148';
+      ctx.beginPath(); ctx.arc(handX + 5, handY, 8.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+      ctx.font = isExcited ? '28px sans-serif' : '22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('💕', handX, pairBaseY - 88 - Math.sin(t * 4) * 6);
+
+      // === OTROS GATITOS HACIENDO POSES TIERNAS A LA DERECHA ===
+      const rightX = Math.min(w - 125, w * 0.84);
+      const rightY = h * 0.76;
+      const distRight = Math.hypot(rightX - titleScene.pointerX, rightY - titleScene.pointerY);
+      const rightExcited = distRight < 150 || titleScene.poseBoostTimer > 0;
+      const canela = CAT_MODELS[2];
+      const lulu = CAT_MODELS[4];
+
+      ctx.save();
+      ctx.translate(rightX - 38, rightY - Math.abs(Math.sin(t * 3.4 + 1)) * (rightExcited ? 11 : 5));
+      ctx.scale(1.55, 1.55);
+      drawCatCharacter(ctx, { x: 0, y: 0, dir: 1 }, {
+        furColor: canela.fur, furShade: canela.furShade, earInner: canela.ear, pawTint: canela.paw,
+        stripes: canela.stripes, eyeColor: canela.eye, scarfColor: '#ffd166',
+        expression: rightExcited ? 'happy' : 'wink',
+        name: 'Canela 🍓'
+      });
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(rightX + 42, rightY - Math.abs(Math.cos(t * 3.4)) * (rightExcited ? 11 : 5));
+      ctx.scale(1.55, 1.55);
+      drawCatCharacter(ctx, { x: 0, y: 0, dir: -1 }, {
+        furColor: lulu.fur, furShade: lulu.furShade, earInner: lulu.ear, pawTint: lulu.paw,
+        stripes: lulu.stripes, eyeColor: lulu.eye, scarfColor: '#ff8fab',
+        expression: 'happy',
+        name: 'Lulú 🧁'
+      });
+      ctx.restore();
+
+      // Destellos al hacer clic
+      for (let i = titleScene.clickBursts.length - 1; i >= 0; i--) {
+        const b = titleScene.clickBursts[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        b.life--;
+        ctx.globalAlpha = Math.max(0, b.life / 48);
+        ctx.font = '20px sans-serif';
+        ctx.fillText(b.icon, b.x, b.y);
+        if (b.life <= 0) titleScene.clickBursts.splice(i, 1);
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // ================= MENÚS Y CONFIGURACIÓN =================
+    function renderCatPreviewCanvas(canvasEl, model, gearMode) {
+      const pCtx = canvasEl.getContext('2d');
+      pCtx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      pCtx.save();
+      pCtx.scale(1.12, 1.12);
+      drawCatCharacter(pCtx, { x: 35, y: 46, dir: 1 }, {
+        furColor: model.fur, furShade: model.furShade, earInner: model.ear, pawTint: model.paw,
+        stripes: model.stripes, eyeColor: model.eye, outfit: model.outfit, gearMode: gearMode, hideShadow: true
+      });
+      pCtx.restore();
+    }
+
+    function buildModelPickers() {
+      const grid1 = document.getElementById('p1ModelGrid');
+      const grid2 = document.getElementById('p2ModelGrid');
+      grid1.innerHTML = ''; grid2.innerHTML = '';
+
+      const p1Label = document.getElementById('p1PickerLabel');
+      const p2Label = document.getElementById('p2PickerLabel');
+      if (gameConfig.isRemoteConnected) {
+        p1Label.textContent = gameConfig.isHost
+          ? '👑 Tu Personaje (Anfitrión - Jugador 1):'
+          : '👑 Personaje de tu Amigo (Anfitrión - Jugador 1):';
+        p2Label.textContent = !gameConfig.isHost
+          ? '🎮 Tu Personaje (Invitado - Jugador 2):'
+          : '🎮 Personaje de tu Amigo (Invitado - Jugador 2):';
+      } else {
+        p1Label.textContent = '🐱 Modelo para Jugador 1:';
+        p2Label.textContent = '🐱 Modelo para Jugador 2:';
+      }
+
+      CAT_MODELS.forEach(model => {
+        const card1 = document.createElement('div');
+        card1.className = 'cat-model-card' + (gameConfig.p1Model.id === model.id ? ' selected' : '');
+        const cvs1 = document.createElement('canvas'); cvs1.width = 78; cvs1.height = 82; cvs1.className = 'cat-preview-canvas';
+        renderCatPreviewCanvas(cvs1, model, 'chef');
+        const title1 = document.createElement('strong'); title1.style.cssText = 'font-size:0.78rem; color:#fff;'; title1.textContent = model.name;
+        card1.appendChild(cvs1); card1.appendChild(title1);
+        card1.onclick = () => {
+          if (gameConfig.isRemoteConnected && !gameConfig.isHost) {
+            showToast('Ese es el gatito de tu amigo. ¡Elige el tuyo abajo!');
+            return;
+          }
+          gameConfig.p1Model = model;
+          buildModelPickers();
+          sendModelSelection();
+        };
+        grid1.appendChild(card1);
+
+        const card2 = document.createElement('div');
+        card2.className = 'cat-model-card' + (gameConfig.p2Model.id === model.id ? ' selected' : '');
+        const cvs2 = document.createElement('canvas'); cvs2.width = 78; cvs2.height = 82; cvs2.className = 'cat-preview-canvas';
+        renderCatPreviewCanvas(cvs2, model, 'explorer');
+        const title2 = document.createElement('strong'); title2.style.cssText = 'font-size:0.78rem; color:#fff;'; title2.textContent = model.name;
+        card2.appendChild(cvs2); card2.appendChild(title2);
+        card2.onclick = () => {
+          if (gameConfig.isRemoteConnected && gameConfig.isHost) {
+            showToast('Ese es el gatito de tu amigo. ¡Elige el tuyo arriba!');
+            return;
+          }
+          gameConfig.p2Model = model;
+          buildModelPickers();
+          sendModelSelection();
+        };
+        grid2.appendChild(card2);
+      });
+    }
+
+    function appendChatMessage(sender, text) {
+      const box = document.getElementById('chatMessages');
+      const item = document.createElement('div');
+      item.className = 'chat-msg';
+      item.innerHTML = `<strong>${sender}:</strong> ${text.replace(/</g, '&lt;')}`;
+      box.appendChild(item);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function broadcastNetworkPacket(packet) {
+      if (gameConfig.channel) gameConfig.channel.postMessage(packet);
+      gameConfig.connections.forEach(conn => { if (conn && conn.open) conn.send(packet); });
+    }
+
+    function sendModelSelection() {
+      if (!gameConfig.isRemoteConnected) return;
+      broadcastNetworkPacket({
+        type: 'model_sync',
+        role: gameConfig.isHost ? 'p1' : 'p2',
+        modelId: gameConfig.isHost ? gameConfig.p1Model.id : gameConfig.p2Model.id
+      });
+    }
+
+    function sendRealtimePlayerSync() {
+      if (!gameConfig.isRemoteConnected) return;
+      const actor = gameConfig.isHost ? p1 : p2;
+      broadcastNetworkPacket({
+        type: 'player_sync',
+        role: gameConfig.isHost ? 'p1' : 'p2',
+        x: actor.x,
+        y: actor.y,
+        vx: actor.vx,
+        vy: actor.vy,
+        dir: actor.dir,
+        actionTimer: actor.actionTimer,
+        actionType: actor.actionType,
+        chopAnim: actor.chopAnim,
+        holdingDish: actor.holdingDish,
+        modelId: gameConfig.isHost ? gameConfig.p1Model.id : gameConfig.p2Model.id
+      });
+    }
+
+    function broadcastGameState() {
+      if (!gameConfig.isRemoteConnected) return;
+      broadcastNetworkPacket({
+        type: 'full_state',
+        score: state.score,
+        fruitBaskets: state.fruitBaskets,
+        pantryStock: state.pantryStock,
+        ovenWood: state.ovenWood,
+        emptyJarsStock: state.emptyJarsStock,
+        p1Stock: state.p1Stock,
+        p2Bag: state.p2Bag,
+        orders: state.orders,
+        npcCats: npcCats,
+        droppedItems: droppedItems,
+        cafeTablesHair: cafeTables.map(t => ({ id: t.id, hairPile: t.hairPile })),
+        forestNodesState: forestNodes.map(n => ({ active: n.active, respawn: n.respawn })),
+        treesState: choppableTrees.map(t => ({ hp: t.hp, respawn: t.respawn }))
+      });
+    }
+
+    function handleIncomingNetworkData(data) {
+      if (!data) return;
+      if (data.type === 'chat') {
+        const chatBox = document.getElementById('chatMessages');
+        if (chatBox.classList.contains('hidden')) {
+          chatBox.classList.remove('hidden');
+          document.getElementById('chatInputRow').classList.remove('hidden');
+          document.getElementById('chatMinimizeIcon').textContent = '▼';
+        }
+        appendChatMessage(data.sender || 'Amigo', data.text);
+      } else if (data.type === 'hello_guest') {
+        gameConfig.isRemoteConnected = true;
+        document.getElementById('inviteStatus').textContent = `✅ ¡Tu amigo se unió a la sala ${gameConfig.roomCode}!`;
+        showToast('🎉 ¡Un amigo se conectó a tu sala!');
+        sendModelSelection();
+        sendRealtimePlayerSync();
+        broadcastGameState();
+      } else if (data.type === 'model_sync') {
+        const found = CAT_MODELS.find(m => m.id === data.modelId);
+        if (found) {
+          if (data.role === 'p1') gameConfig.p1Model = found;
+          else gameConfig.p2Model = found;
+          if (!document.getElementById('screenCharSelect').classList.contains('hidden')) {
+            buildModelPickers();
+          }
+        }
+      } else if (data.type === 'player_sync') {
+        const target = data.role === 'p1' ? p1 : p2;
+        target.x = data.x;
+        target.y = data.y;
+        target.vx = data.vx || 0;
+        target.vy = data.vy || 0;
+        target.dir = data.dir || 1;
+        target.actionTimer = data.actionTimer || 0;
+        target.actionType = data.actionType || '';
+        target.chopAnim = data.chopAnim || 0;
+        target.holdingDish = data.holdingDish || null;
+        if (data.modelId) {
+          const found = CAT_MODELS.find(m => m.id === data.modelId);
+          if (found) {
+            if (data.role === 'p1') gameConfig.p1Model = found;
+            else gameConfig.p2Model = found;
+          }
+        }
+      } else if (data.type === 'full_state') {
+        state.score = data.score;
+        state.fruitBaskets = data.fruitBaskets;
+        state.pantryStock = data.pantryStock;
+        state.ovenWood = data.ovenWood;
+        if (data.emptyJarsStock !== undefined) state.emptyJarsStock = data.emptyJarsStock;
+        state.p1Stock = data.p1Stock;
+        state.p2Bag = data.p2Bag;
+        state.orders = data.orders;
+        if (data.npcCats && !gameConfig.isHost) npcCats = data.npcCats;
+        if (data.droppedItems) {
+          droppedItems.length = 0;
+          droppedItems.push(...data.droppedItems);
+        }
+        if (data.cafeTablesHair) {
+          data.cafeTablesHair.forEach(th => {
+            const tbl = cafeTables.find(t => t.id === th.id);
+            if (tbl) tbl.hairPile = th.hairPile;
+          });
+        }
+        if (data.forestNodesState) {
+          data.forestNodesState.forEach((ns, idx) => {
+            if (forestNodes[idx]) {
+              forestNodes[idx].active = ns.active;
+              forestNodes[idx].respawn = ns.respawn;
+            }
+          });
+        }
+        if (data.treesState) {
+          data.treesState.forEach((ts, idx) => {
+            if (choppableTrees[idx]) {
+              choppableTrees[idx].hp = ts.hp;
+              choppableTrees[idx].respawn = ts.respawn;
+            }
+          });
+        }
+        renderOrders();
+        updateHud();
+      }
+    }
+
+    function setupOnlineRoom(code, asHost) {
+      if (gameConfig.channel) gameConfig.channel.close();
+      if (gameConfig.peer) { try { gameConfig.peer.destroy(); } catch (e) {} }
+      gameConfig.connections = [];
+      gameConfig.isHost = asHost;
+      gameConfig.roomCode = code;
+      document.getElementById('roomCodeDisplay').textContent = code;
+      document.getElementById('chatRoomLabel').textContent = code;
+      document.getElementById('chatWidget').classList.remove('hidden');
+
+      if ('BroadcastChannel' in window) {
+        gameConfig.channel = new BroadcastChannel('isla_michi_' + code);
+        gameConfig.channel.onmessage = ev => handleIncomingNetworkData(ev.data);
+      }
+
+      if (typeof Peer !== 'undefined') {
+        const peerId = asHost ? 'ISLA-MICHI-' + code : undefined;
+        const peer = new Peer(peerId, {
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+        gameConfig.peer = peer;
+
+        peer.on('open', () => {
+          if (asHost) {
+            document.getElementById('inviteStatus').textContent = `✅ Sala Online ${code} lista. Comparte el código con tu amigo...`;
+          } else {
+            document.getElementById('inviteStatus').textContent = `⏳ Conectando a la sala ${code}...`;
+            const conn = peer.connect('ISLA-MICHI-' + code, { reliable: true });
+            conn.on('open', () => {
+              gameConfig.connections.push(conn);
+              gameConfig.isRemoteConnected = true;
+              document.getElementById('inviteStatus').textContent = `✅ ¡Conectado Online a ${code}! Pulsa Continuar.`;
+              showToast(`🌐 ¡Conectado Online a ${code}!`);
+              conn.send({ type: 'hello_guest' });
+              sendModelSelection();
+              sendRealtimePlayerSync();
+            });
+            conn.on('data', data => handleIncomingNetworkData(data));
+            conn.on('close', () => {
+              showToast('⚠️ Se perdió la conexión con el anfitrión.');
+            });
+          }
+        });
+
+        peer.on('error', err => {
+          if (err.type === 'unavailable-id') {
+            document.getElementById('inviteStatus').textContent = `⚠️ El código ${code} ya existe. Usa "Unirse Online" o genera uno nuevo.`;
+          } else if (err.type === 'peer-unavailable') {
+            document.getElementById('inviteStatus').textContent = `❌ No se encontró la sala ${code}. Verifica que tu amigo la haya creado.`;
+          } else {
+            document.getElementById('inviteStatus').textContent = `⚠️ Error de red (${err.type}). Reintenta de nuevo.`;
+          }
+        });
+
+        if (asHost) {
+          peer.on('connection', conn => {
+            gameConfig.connections.push(conn);
+            gameConfig.isRemoteConnected = true;
+            document.getElementById('inviteStatus').textContent = `✅ ¡Un amigo se unió a la sala ${code}!`;
+            showToast('🎉 ¡Un compañero se unió online!');
+            conn.on('open', () => {
+              sendModelSelection();
+              sendRealtimePlayerSync();
+              broadcastGameState();
+            });
+            conn.on('data', data => handleIncomingNetworkData(data));
+          });
+        }
+      } else {
+        gameConfig.isRemoteConnected = true;
+      }
+    }
+
+    function setupMenus() {
+      const screenTitle = document.getElementById('screenTitle');
+      const screenMode = document.getElementById('screenMode');
+      const screenCharSelect = document.getElementById('screenCharSelect');
+      document.getElementById('roomCodeDisplay').textContent = gameConfig.roomCode;
+
+      document.getElementById('btnStart').onclick = () => { screenTitle.classList.add('hidden'); screenMode.classList.remove('hidden'); };
+      document.getElementById('btnBackToTitle').onclick = () => { screenMode.classList.add('hidden'); screenTitle.classList.remove('hidden'); };
+
+      document.querySelectorAll('.mode-option').forEach(opt => {
+        opt.onclick = () => {
+          document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          gameConfig.mode = opt.dataset.mode;
+        };
+      });
+
+      const selectDuoModeCard = () => {
+        document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+        const duoCard = document.querySelector('.mode-option[data-mode="duo_local"]');
+        if (duoCard) duoCard.classList.add('selected');
+        gameConfig.mode = 'duo_local';
+      };
+
+      document.getElementById('btnGenCode').onclick = () => {
+        const newCode = 'MICHIS-' + Math.floor(100 + Math.random() * 899);
+        selectDuoModeCard();
+        setupOnlineRoom(newCode, true);
+        showToast(`🌐 Sala creada: ${newCode}`);
+      };
+
+      const copyRoomCode = () => {
+        const codeText = document.getElementById('roomCodeDisplay').textContent;
+        const temp = document.createElement('textarea');
+        temp.value = codeText;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast(`📋 Código copiado: ${codeText}`);
+      };
+      document.getElementById('btnCopyCode').onclick = copyRoomCode;
+      document.getElementById('roomCodeDisplay').onclick = copyRoomCode;
+
+      document.getElementById('btnJoinCode').onclick = () => {
+        const val = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+        if (!val) { showToast('Escribe un código válido'); return; }
+        selectDuoModeCard();
+        setupOnlineRoom(val, false);
+        showToast(`🔗 Conectando a ${val}...`);
+      };
+
+      document.getElementById('btnContinueMode').onclick = () => {
+        screenMode.classList.add('hidden');
+        screenCharSelect.classList.remove('hidden');
+        const soloAiBox = document.getElementById('soloAiRoleBox');
+        const p2Section = document.getElementById('p2PickerSection');
+        if (gameConfig.mode === 'solo_hybrid') {
+          soloAiBox.classList.add('hidden'); p2Section.classList.add('hidden');
+        } else if (gameConfig.mode === 'duo_local') {
+          soloAiBox.classList.add('hidden'); p2Section.classList.remove('hidden');
+        } else {
+          soloAiBox.classList.remove('hidden'); p2Section.classList.remove('hidden');
+        }
+        buildModelPickers();
+      };
+
+      document.getElementById('btnRoleChef').onclick = () => {
+        gameConfig.soloAiPlayerRole = 'chef';
+        document.getElementById('btnRoleChef').className = 'btn-cute btn-secondary';
+        document.getElementById('btnRoleGather').className = 'btn-cute btn-ghost';
+      };
+      document.getElementById('btnRoleGather').onclick = () => {
+        gameConfig.soloAiPlayerRole = 'gatherer';
+        document.getElementById('btnRoleGather').className = 'btn-cute btn-secondary';
+        document.getElementById('btnRoleChef').className = 'btn-cute btn-ghost';
+      };
+
+      document.getElementById('btnBackToMode').onclick = () => { screenCharSelect.classList.add('hidden'); screenMode.classList.remove('hidden'); };
+
+      document.getElementById('btnPlayGame').onclick = () => {
+        screenCharSelect.classList.add('hidden');
+        state.started = true;
+        camP1.initialized = false;
+        camP2.initialized = false;
+        evaluateChefMissingIngredients();
+        if (gameConfig.mode === 'duo_local' && !gameConfig.peer) setupOnlineRoom(gameConfig.roomCode, true);
+        if (gameConfig.isRemoteConnected) {
+          sendModelSelection();
+          sendRealtimePlayerSync();
+          if (gameConfig.isHost) broadcastGameState();
+        }
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.getElementById('mobileControls').classList.remove('hidden');
+        document.getElementById('modeBadgeText').textContent = gameConfig.isRemoteConnected
+          ? `Online Sala ${gameConfig.roomCode} (${gameConfig.isHost ? 'Anfitrión' : 'Invitado'})`
+          : (gameConfig.mode === 'solo_hybrid' ? 'Rol Doble Dinámico (Interior / Bosque Extendido)' : 'Modo Multijugador / IA');
+        showToast('🐾 ¡Bienvenido a Isla Michi!');
+      };
+
+      document.getElementById('btnOpenMenu').onclick = () => { state.started = false; screenMode.classList.remove('hidden'); };
+      document.getElementById('btnToggleTouch').onclick = () => { document.getElementById('mobileControls').classList.toggle('hidden'); };
+
+      // Minimizar / expandir chat
+      document.getElementById('chatHeaderToggle').onclick = () => {
+        const msgs = document.getElementById('chatMessages');
+        const row = document.getElementById('chatInputRow');
+        const icon = document.getElementById('chatMinimizeIcon');
+        const isHidden = msgs.classList.toggle('hidden');
+        row.classList.toggle('hidden', isHidden);
+        icon.textContent = isHidden ? '▲' : '▼';
+      };
+
+      const sendChatMessage = () => {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+        if (!msg) return;
+        const myName = gameConfig.isRemoteConnected
+          ? (gameConfig.isHost ? gameConfig.p1Model.name : gameConfig.p2Model.name)
+          : 'Tú';
+        appendChatMessage(`${myName} (Tú)`, msg);
+        broadcastNetworkPacket({ type: 'chat', sender: myName, text: msg });
+        input.value = '';
+      };
+
+      document.getElementById('btnSendChat').onclick = sendChatMessage;
+      document.getElementById('chatInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+    }
+
+    function appendChatMessage(sender, text) {
+      const box = document.getElementById('chatMessages');
+      const item = document.createElement('div');
+      item.className = 'chat-msg';
+      item.innerHTML = `<strong>${sender}:</strong> ${text.replace(/</g, '&lt;')}`;
+      box.appendChild(item);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function broadcastNetworkPacket(packet) {
+      if (gameConfig.channel) gameConfig.channel.postMessage(packet);
+      gameConfig.connections.forEach(conn => { if (conn && conn.open) conn.send(packet); });
+    }
+
+    function broadcastGameState() {
+      if (!gameConfig.isRemoteConnected) return;
+      broadcastNetworkPacket({
+        type: 'full_state',
+        score: state.score, fruitBaskets: state.fruitBaskets, pantryStock: state.pantryStock,
+        ovenWood: state.ovenWood, p1Stock: state.p1Stock, p2Bag: state.p2Bag, orders: state.orders,
+        npcCats: npcCats, droppedItems: droppedItems
+      });
+    }
+
+    function handleIncomingNetworkData(data) {
+      if (!data) return;
+      if (data.type === 'chat') appendChatMessage(data.sender || 'Amigo', data.text);
+      else if (data.type === 'full_state') {
+        state.score = data.score; state.fruitBaskets = data.fruitBaskets; state.pantryStock = data.pantryStock;
+        state.ovenWood = data.ovenWood; state.p1Stock = data.p1Stock; state.p2Bag = data.p2Bag;
+        state.orders = data.orders; if (data.npcCats) npcCats = data.npcCats;
+        renderOrders(); updateHud();
+      }
+    }
+
+    function setupOnlineRoom(code, asHost) {
+      if (gameConfig.channel) gameConfig.channel.close();
+      if (gameConfig.peer) { try { gameConfig.peer.destroy(); } catch (e) {} }
+      gameConfig.connections = []; gameConfig.isHost = asHost; gameConfig.roomCode = code;
+      document.getElementById('chatRoomLabel').textContent = code;
+      document.getElementById('chatWidget').classList.remove('hidden');
+
+      if ('BroadcastChannel' in window) {
+        gameConfig.channel = new BroadcastChannel('isla_michi_' + code);
+        gameConfig.channel.onmessage = ev => handleIncomingNetworkData(ev.data);
+      }
+
+      if (typeof Peer !== 'undefined') {
+        const peerId = asHost ? 'ISLA-MICHI-' + code : undefined;
+        const peer = new Peer(peerId);
+        gameConfig.peer = peer;
+        peer.on('open', () => {
+          if (asHost) document.getElementById('inviteStatus').textContent = `✅ Sala Online ${code} activa. Esperando jugador...`;
+          else {
+            const conn = peer.connect('ISLA-MICHI-' + code, { reliable: true });
+            conn.on('open', () => {
+              gameConfig.connections.push(conn);
+              gameConfig.isRemoteConnected = true;
+              document.getElementById('inviteStatus').textContent = `✅ ¡Conectado Online a ${code}!`;
+              showToast(`🌐 ¡Conectado Online!`);
+            });
+            conn.on('data', data => handleIncomingNetworkData(data));
+          }
+        });
+        if (asHost) {
+          peer.on('connection', conn => {
+            gameConfig.connections.push(conn);
+            gameConfig.isRemoteConnected = true;
+            document.getElementById('inviteStatus').textContent = `✅ ¡Un amigo se unió a la sala ${code}!`;
+            showToast('🎉 ¡Un compañero se unió online!');
+            conn.on('open', () => broadcastGameState());
+            conn.on('data', data => handleIncomingNetworkData(data));
+          });
+        }
+      } else {
+        gameConfig.isRemoteConnected = true;
+      }
+    }
+
+    function setupMenus() {
+      const screenTitle = document.getElementById('screenTitle');
+      const screenMode = document.getElementById('screenMode');
+      const screenCharSelect = document.getElementById('screenCharSelect');
+      document.getElementById('roomCodeDisplay').textContent = gameConfig.roomCode;
+
+      document.getElementById('btnStart').onclick = () => { screenTitle.classList.add('hidden'); screenMode.classList.remove('hidden'); };
+      document.getElementById('btnBackToTitle').onclick = () => { screenMode.classList.add('hidden'); screenTitle.classList.remove('hidden'); };
+
+      document.querySelectorAll('.mode-option').forEach(opt => {
+        opt.onclick = () => {
+          document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          gameConfig.mode = opt.dataset.mode;
+        };
+      });
+
+      document.getElementById('btnGenCode').onclick = () => {
+        const newCode = 'MICHIS-' + Math.floor(100 + Math.random() * 899);
+        document.getElementById('roomCodeDisplay').textContent = newCode;
+        gameConfig.mode = 'duo_local';
+        setupOnlineRoom(newCode, true);
+        showToast(`🌐 Sala creada: ${newCode}`);
+      };
+
+      document.getElementById('btnJoinCode').onclick = () => {
+        const val = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+        if (!val) { showToast('Escribe un código válido'); return; }
+        gameConfig.mode = 'duo_local';
+        setupOnlineRoom(val, false);
+        showToast(`🔗 Conectando a ${val}...`);
+      };
+
+      document.getElementById('btnContinueMode').onclick = () => {
+        screenMode.classList.add('hidden');
+        screenCharSelect.classList.remove('hidden');
+        const soloAiBox = document.getElementById('soloAiRoleBox');
+        const p2Section = document.getElementById('p2PickerSection');
+        if (gameConfig.mode === 'solo_hybrid') {
+          soloAiBox.classList.add('hidden'); p2Section.classList.add('hidden');
+        } else {
+          soloAiBox.classList.remove('hidden'); p2Section.classList.remove('hidden');
+        }
+        buildModelPickers();
+      };
+
+      document.getElementById('btnRoleChef').onclick = () => {
+        gameConfig.soloAiPlayerRole = 'chef';
+        document.getElementById('btnRoleChef').className = 'btn-cute btn-secondary';
+        document.getElementById('btnRoleGather').className = 'btn-cute btn-ghost';
+      };
+      document.getElementById('btnRoleGather').onclick = () => {
+        gameConfig.soloAiPlayerRole = 'gatherer';
+        document.getElementById('btnRoleGather').className = 'btn-cute btn-secondary';
+        document.getElementById('btnRoleChef').className = 'btn-cute btn-ghost';
+      };
+
+      document.getElementById('btnBackToMode').onclick = () => { screenCharSelect.classList.add('hidden'); screenMode.classList.remove('hidden'); };
+
+      document.getElementById('btnPlayGame').onclick = () => {
+        screenCharSelect.classList.add('hidden');
+        state.started = true;
+        evaluateChefMissingIngredients();
+        if (gameConfig.mode === 'duo_local' && !gameConfig.peer) setupOnlineRoom(gameConfig.roomCode, true);
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.getElementById('mobileControls').classList.remove('hidden');
+        document.getElementById('modeBadgeText').textContent = gameConfig.mode === 'solo_hybrid' ? 'Rol Doble Dinámico (Interior / Bosque Extendido)' : 'Modo Multijugador / IA';
+        showToast('🐾 ¡Bienvenido a Isla Michi!');
+      };
+
+      document.getElementById('btnOpenMenu').onclick = () => { state.started = false; screenMode.classList.remove('hidden'); };
+      document.getElementById('btnToggleTouch').onclick = () => { document.getElementById('mobileControls').classList.toggle('hidden'); };
+
+      document.getElementById('btnSendChat').onclick = () => {
+        const input = document.getElementById('chatInput');
+        if (!input.value.trim()) return;
+        appendChatMessage('Tú', input.value);
+        broadcastNetworkPacket({ type: 'chat', sender: 'Amigo', text: input.value });
+        input.value = '';
+      };
+
+      document.querySelectorAll('.touch-btn[data-key]').forEach(btn => {
+        const k = btn.dataset.key;
+        const press = e => { e.preventDefault(); keysDown[k] = true; };
+        const release = e => { e.preventDefault(); keysDown[k] = false; };
+        btn.addEventListener('touchstart', press, { passive: false });
+        btn.addEventListener('touchend', release);
+        btn.addEventListener('mousedown', press);
+        btn.addEventListener('mouseup', release);
+        btn.addEventListener('mouseleave', release);
+      });
+
+      document.getElementById('touchBtnE').onclick = triggerActionE;
+      document.getElementById('touchBtnR').onclick = triggerActionR;
+      document.getElementById('touchBtn1').onclick = triggerAction1;
+      document.getElementById('touchBtn2').onclick = triggerAction2;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initDeepSpookyForest();
+      spawnNpcCustomer();
+      renderOrders();
+      updateHud();
+      initTitleBackgroundInteraction();
+      setupMenus();
+      loop();
+    });
+  </script>
+</body>
+</html>
